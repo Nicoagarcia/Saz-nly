@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "chefia-mobile",
-    "slug": "chefia-mobile",
+    "name": "Saz-nly-mobile",
+    "slug": "Saz-nly-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.Saz-nly.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -25,6 +26,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ac1361ac-6e01-40dc-addc-881b03a2d2ef"
+      }
     }
   }
 }
