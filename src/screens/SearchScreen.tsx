@@ -34,6 +34,7 @@ interface Props {
 
 export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
+  const flatListRef = React.useRef<FlatList>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "favorites">("all");
@@ -75,6 +76,10 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
 
   const handleRecipePress = (recipe: Recipe) => {
     navigation.navigate("RecipeDetails", { recipeId: recipe.id });
+  };
+
+  const scrollToTop = () => {
+    flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   // Filtrado de recetas con useMemo para optimizar
@@ -200,10 +205,10 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header fijo con título */}
-      <View style={styles.header}>
+      <TouchableOpacity style={styles.header} onPress={scrollToTop} activeOpacity={0.7}>
         <Text style={styles.title}>👨‍🍳 Saz-nly</Text>
         <Text style={styles.subtitle}>Tu asistente de cocina</Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Buscador fijo */}
       <View style={styles.searchContainer}>
@@ -218,6 +223,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={filteredRecipes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
