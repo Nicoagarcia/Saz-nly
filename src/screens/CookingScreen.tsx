@@ -13,6 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { Recipe, RootStackParamList, StepObjective } from '../types';
+import { useBackgroundTimer } from '../hooks/useBackgroundTimer';
+import { NotificationService } from '../services/notificationService';
+import { TimerCompleteModal } from '../components/TimerCompleteModal';
 
 type CookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cooking'>;
 type CookingScreenRouteProp = RouteProp<RootStackParamList, 'Cooking'>;
@@ -27,12 +30,27 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const { recipe } = route.params;
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [objectives, setObjectives] = useState<StepObjective[]>([]);
-  const [timer, setTimer] = useState<number | null>(null);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [showTimerModal, setShowTimerModal] = useState(false);
 
   const currentStep = recipe.steps[currentStepIndex];
   const totalSteps = recipe.steps.length;
   const progress = ((currentStepIndex + 1) / totalSteps) * 100;
+
+  const {
+    remainingSeconds: timer,
+    isRunning: isTimerRunning,
+    startTimer,
+    pauseTimer,
+    resetTimer,
+  } = useBackgroundTimer({
+    initialSeconds: currentStep.timerSeconds ?? null,
+    stepTitle: currentStep.title,
+    onComplete: async () => {
+      await NotificationService.playSound();
+      await NotificationService.triggerHaptic();
+      setShowTimerModal(true);
+    },
+  });
 
   // Inicializar objetivos cuando cambia el paso
   useEffect(() => {
@@ -42,38 +60,24 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
       isCompleted: false,
     }));
     setObjectives(newObjectives);
+  }, [currentStepIndex, currentStep.objectives, currentStep.stepNumber]);
 
-    // Inicializar temporizador si el paso tiene uno
-    if (currentStep.timerSeconds && currentStep.timerSeconds > 0) {
-      setTimer(currentStep.timerSeconds);
-      setIsTimerRunning(false);
-    } else {
-      setTimer(null);
-      setIsTimerRunning(false);
-    }
-  }, [currentStepIndex]);
-
-  // Manejar temporizador
+  // Inicializar servicios de notificación
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    const initNotifications = async () => {
+      // Cancelar todas las notificaciones antiguas al entrar a la pantalla
+      await NotificationService.cancelAllNotifications();
+      await NotificationService.requestPermissions();
+      await NotificationService.setupNotificationChannel();
+      await NotificationService.loadSound();
+    };
 
-    if (isTimerRunning && timer !== null && timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => {
-          if (prev === null || prev <= 1) {
-            setIsTimerRunning(false);
-            Alert.alert('⏰ Temporizador', '¡Tiempo completado!');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    initNotifications();
 
     return () => {
-      if (interval) clearInterval(interval);
+      NotificationService.cleanup();
     };
-  }, [isTimerRunning, timer]);
+  }, []);
 
   const toggleObjective = (id: string) => {
     setObjectives((prev) =>
@@ -140,7 +144,9 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.closeIcon}>×</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{recipe.title}</Text>
+          <Text style={styles.headerTitle} numberOfLines={2} ellipsizeMode="tail">
+            {recipe.title}
+          </Text>
           <Text style={styles.headerSubtitle}>
             Paso {currentStepIndex + 1} de {totalSteps}
           </Text>
@@ -172,11 +178,24 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
               style={[
                 styles.timerButton,
                 isTimerRunning && styles.timerButtonStop,
+                timer === 0 && !isTimerRunning && styles.timerButtonReset,
               ]}
-              onPress={() => setIsTimerRunning(!isTimerRunning)}
+              onPress={() => {
+                if (timer === 0 && !isTimerRunning) {
+                  resetTimer();
+                } else if (isTimerRunning) {
+                  pauseTimer();
+                } else {
+                  startTimer();
+                }
+              }}
             >
               <Text style={styles.timerButtonText}>
-                {isTimerRunning ? 'Pausar' : 'Iniciar'}
+                {timer === 0 && !isTimerRunning
+                  ? 'Reiniciar'
+                  : isTimerRunning
+                  ? 'Pausar'
+                  : 'Iniciar'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -254,6 +273,12 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <TimerCompleteModal
+        visible={showTimerModal}
+        onClose={() => setShowTimerModal(false)}
+        stepTitle={currentStep.title}
+      />
     </SafeAreaView>
   );
 };
@@ -292,18 +317,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 4,
+    flexShrink: 1,
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#fed7aa',
   },
   progressBar: {
-    height: 4,
-    backgroundColor: '#ffedd5',
+    height: 8,
+    backgroundColor: '#fef3c7',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#f97316',
+    shadowColor: '#f97316',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 3,
   },
   content: {
     flex: 1,
@@ -364,6 +400,9 @@ const styles = StyleSheet.create({
   },
   timerButtonStop: {
     backgroundColor: '#dc2626',
+  },
+  timerButtonReset: {
+    backgroundColor: '#2563eb',
   },
   timerButtonText: {
     fontSize: 16,
