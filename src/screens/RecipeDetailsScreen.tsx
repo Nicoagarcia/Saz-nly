@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,18 +8,19 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { getRecipeById, toggleFavorite } from '../services/database';
-import { Recipe, RootStackParamList, Difficulty } from '../types';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { getRecipeById, toggleFavorite } from "../services/database";
+import { Recipe, RootStackParamList, Difficulty } from "../types";
+import { useTheme } from "../hooks/useTheme";
 
 type RecipeDetailsNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
-  'RecipeDetails'
+  "RecipeDetails"
 >;
-type RecipeDetailsRouteProp = RouteProp<RootStackParamList, 'RecipeDetails'>;
+type RecipeDetailsRouteProp = RouteProp<RootStackParamList, "RecipeDetails">;
 
 interface Props {
   navigation: RecipeDetailsNavigationProp;
@@ -27,9 +28,12 @@ interface Props {
 }
 
 export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const { recipeId } = route.params;
+
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadRecipe();
@@ -49,18 +53,18 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const handleStartCooking = () => {
     if (recipe) {
-      navigation.navigate('Cooking', { recipe });
+      navigation.navigate("Cooking", { recipe });
     }
   };
 
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
       case Difficulty.EASY:
-        return { bg: '#dcfce7', text: '#16a34a' };
+        return { bg: "#dcfce7", text: "#16a34a" };
       case Difficulty.MEDIUM:
-        return { bg: '#fef9c3', text: '#ca8a04' };
+        return { bg: "#fef9c3", text: "#ca8a04" };
       case Difficulty.HARD:
-        return { bg: '#fee2e2', text: '#dc2626' };
+        return { bg: "#fee2e2", text: "#dc2626" };
     }
   };
 
@@ -80,11 +84,14 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     );
   }
 
-  const colors = getDifficultyColor(recipe.difficulty);
+  const difficultyColors = getDifficultyColor(recipe.difficulty);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1f2937" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={difficultyColors.text}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -92,7 +99,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       >
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: recipe.imageUrl || 'https://via.placeholder.com/800x400' }}
+            source={{
+              uri: recipe.imageUrl || "https://via.placeholder.com/800x400",
+            }}
             style={styles.image}
             resizeMode="cover"
           />
@@ -107,7 +116,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.favoriteButton}
             onPress={handleToggleFavorite}
           >
-            <Text style={styles.favoriteIcon}>{recipe.isFavorite ? '⭐' : '☆'}</Text>
+            <Text style={styles.favoriteIcon}>
+              {recipe.isFavorite ? "⭐" : "☆"}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -116,16 +127,24 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.description}>{recipe.description}</Text>
 
           <View style={styles.metaContainer}>
-            <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-              <Text style={[styles.badgeText, { color: colors.text }]}>
+            <View
+              style={[styles.badge, { backgroundColor: difficultyColors.bg }]}
+            >
+              <Text
+                style={[styles.badgeText, { color: difficultyColors.text }]}
+              >
                 {recipe.difficulty}
               </Text>
             </View>
             <View style={styles.meta}>
-              <Text style={styles.metaText}>⏱️ {recipe.prepTimeMinutes} min</Text>
+              <Text style={styles.metaText}>
+                ⏱️ {recipe.prepTimeMinutes} min
+              </Text>
             </View>
             <View style={styles.meta}>
-              <Text style={styles.metaText}>🍽️ {recipe.servings} porciones</Text>
+              <Text style={styles.metaText}>
+                🍽️ {recipe.servings} porciones
+              </Text>
             </View>
           </View>
 
@@ -136,7 +155,8 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
                 <Text style={styles.ingredientBullet}>•</Text>
                 <View style={styles.ingredientContent}>
                   <Text style={styles.ingredientText}>
-                    <Text style={styles.ingredientAmount}>{ing.amount}</Text> {ing.item}
+                    <Text style={styles.ingredientAmount}>{ing.amount}</Text>{" "}
+                    {ing.item}
                   </Text>
                   {ing.notes && (
                     <Text style={styles.ingredientNotes}>{ing.notes}</Text>
@@ -183,213 +203,214 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  imageContainer: {
-    position: 'relative',
-    height: 300,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  imageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-  },
-  backButtonFloat: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    fontSize: 24,
-    color: '#1f2937',
-  },
-  favoriteButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  favoriteIcon: {
-    fontSize: 24,
-  },
-  content: {
-    padding: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6b7280',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  metaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 24,
-  },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  metaText: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 16,
-  },
-  ingredientItem: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  ingredientBullet: {
-    fontSize: 18,
-    color: '#f97316',
-    marginRight: 8,
-    marginTop: 2,
-  },
-  ingredientContent: {
-    flex: 1,
-  },
-  ingredientText: {
-    fontSize: 16,
-    color: '#1f2937',
-    lineHeight: 24,
-  },
-  ingredientAmount: {
-    fontWeight: '600',
-    color: '#f97316',
-  },
-  ingredientNotes: {
-    fontSize: 14,
-    color: '#9ca3af',
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  stepContainer: {
-    marginBottom: 24,
-    paddingBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  stepHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#f97316',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  stepNumberText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  stepTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1f2937',
-    flex: 1,
-  },
-  stepDescription: {
-    fontSize: 16,
-    color: '#6b7280',
-    lineHeight: 24,
-  },
-  timerBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#fff7ed',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  timerText: {
-    fontSize: 14,
-    color: '#f97316',
-    fontWeight: '600',
-  },
-  bottomBar: {
-    padding: 20,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
-  },
-  cookButton: {
-    backgroundColor: '#f97316',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  cookButtonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  errorText: {
-    fontSize: 18,
-    color: '#6b7280',
-    marginBottom: 24,
-  },
-  backButton: {
-    backgroundColor: '#f97316',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  backButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    imageContainer: {
+      position: "relative",
+      height: 300,
+    },
+    image: {
+      width: "100%",
+      height: "100%",
+    },
+    imageOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(0, 0, 0, 0.2)",
+    },
+    backButtonFloat: {
+      position: "absolute",
+      top: 20,
+      left: 20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    backIcon: {
+      fontSize: 24,
+      color: colors.text,
+    },
+    favoriteButton: {
+      position: "absolute",
+      top: 20,
+      right: 20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "rgba(255, 255, 255, 0.9)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    favoriteIcon: {
+      fontSize: 24,
+    },
+    content: {
+      padding: 20,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 12,
+    },
+    description: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      lineHeight: 24,
+      marginBottom: 20,
+    },
+    metaContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 24,
+    },
+    badge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+    },
+    badgeText: {
+      fontSize: 14,
+      fontWeight: "600",
+    },
+    meta: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    metaText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    section: {
+      marginBottom: 32,
+    },
+    sectionTitle: {
+      fontSize: 22,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 16,
+    },
+    ingredientItem: {
+      flexDirection: "row",
+      marginBottom: 12,
+    },
+    ingredientBullet: {
+      fontSize: 18,
+      color: colors.primary,
+      marginRight: 8,
+      marginTop: 2,
+    },
+    ingredientContent: {
+      flex: 1,
+    },
+    ingredientText: {
+      fontSize: 16,
+      color: colors.text,
+      lineHeight: 24,
+    },
+    ingredientAmount: {
+      fontWeight: "600",
+      color: colors.primary,
+    },
+    ingredientNotes: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontStyle: "italic",
+      marginTop: 2,
+    },
+    stepContainer: {
+      marginBottom: 24,
+      paddingBottom: 24,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    stepHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    stepNumber: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 12,
+    },
+    stepNumberText: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.textInverted,
+    },
+    stepTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.text,
+      flex: 1,
+    },
+    stepDescription: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      lineHeight: 24,
+    },
+    timerBadge: {
+      alignSelf: "flex-start",
+      backgroundColor: colors.primaryLight,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
+      marginTop: 8,
+    },
+    timerText: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: "600",
+    },
+    bottomBar: {
+      padding: 20,
+      backgroundColor: colors.background,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    cookButton: {
+      backgroundColor: colors.primary,
+      paddingVertical: 16,
+      borderRadius: 12,
+      alignItems: "center",
+    },
+    cookButtonText: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.textInverted,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 40,
+    },
+    errorText: {
+      fontSize: 18,
+      color: colors.textSecondary,
+      marginBottom: 24,
+    },
+    backButton: {
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 8,
+    },
+    backButtonText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.textInverted,
+    },
+  });

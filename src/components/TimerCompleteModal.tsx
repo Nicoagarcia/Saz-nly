@@ -8,6 +8,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
+import { useTheme } from '../hooks/useTheme';
 
 interface TimerCompleteModalProps {
   visible: boolean;
@@ -20,8 +21,10 @@ export const TimerCompleteModal: React.FC<TimerCompleteModalProps> = ({
   onClose,
   stepTitle,
 }) => {
+  const { colors } = useTheme();
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
+  const styles = createStyles(colors);
 
   useEffect(() => {
     if (visible) {
@@ -87,15 +90,15 @@ export const TimerCompleteModal: React.FC<TimerCompleteModalProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: colors.modalOverlay,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.modalBackground,
     borderRadius: 24,
     padding: 32,
     alignItems: 'center',
@@ -111,7 +114,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#fff7ed',
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -122,18 +125,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#6b7280',
+    color: colors.textSecondary,
     marginBottom: 24,
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#f97316',
+    backgroundColor: colors.primary,
     paddingHorizontal: 48,
     paddingVertical: 16,
     borderRadius: 16,
@@ -142,7 +145,7 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.textInverted,
     textAlign: 'center',
   },
 });

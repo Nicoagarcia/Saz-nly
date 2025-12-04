@@ -16,6 +16,7 @@ import { Recipe, RootStackParamList, StepObjective } from '../types';
 import { useBackgroundTimer } from '../hooks/useBackgroundTimer';
 import { NotificationService } from '../services/notificationService';
 import { TimerCompleteModal } from '../components/TimerCompleteModal';
+import { useTheme } from '../hooks/useTheme';
 
 type CookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cooking'>;
 type CookingScreenRouteProp = RouteProp<RootStackParamList, 'Cooking'>;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { recipe } = route.params;
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -35,6 +37,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const currentStep = recipe.steps[currentStepIndex];
   const totalSteps = recipe.steps.length;
   const progress = ((currentStepIndex + 1) / totalSteps) * 100;
+  const styles = createStyles(colors);
 
   const {
     remainingSeconds: timer,
@@ -125,7 +128,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor={colors.headerBackground} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -283,15 +286,15 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f97316',
+    backgroundColor: colors.headerBackground,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
@@ -306,7 +309,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     fontSize: 28,
-    color: '#ffffff',
+    color: colors.headerText,
     fontWeight: 'bold',
   },
   headerContent: {
@@ -315,17 +318,17 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.headerText,
     marginBottom: 4,
     flexShrink: 1,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#fed7aa',
+    color: colors.headerSubtext,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#fef3c7',
+    backgroundColor: colors.progressBackground,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -334,8 +337,8 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#f97316',
-    shadowColor: '#f97316',
+    backgroundColor: colors.progressFill,
+    shadowColor: colors.progressFill,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
     shadowRadius: 4,
@@ -352,7 +355,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f97316',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -360,21 +363,21 @@ const styles = StyleSheet.create({
   stepNumberText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.textInverted,
   },
   stepTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text,
     marginBottom: 12,
   },
   stepDescription: {
     fontSize: 16,
-    color: '#6b7280',
+    color: colors.textSecondary,
     lineHeight: 24,
   },
   timerContainer: {
-    backgroundColor: '#fff7ed',
+    backgroundColor: colors.timerBackground,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -382,32 +385,32 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     fontSize: 14,
-    color: '#9a3412',
+    color: colors.timerLabel,
     fontWeight: '600',
     marginBottom: 8,
   },
   timerDisplay: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#f97316',
+    color: colors.timerDisplay,
     marginBottom: 16,
   },
   timerButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: colors.timerButtonStart,
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 24,
   },
   timerButtonStop: {
-    backgroundColor: '#dc2626',
+    backgroundColor: colors.timerButtonPause,
   },
   timerButtonReset: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.timerButtonReset,
   },
   timerButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.headerText,
   },
   objectivesContainer: {
     marginBottom: 24,
@@ -415,7 +418,7 @@ const styles = StyleSheet.create({
   objectivesTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text,
     marginBottom: 16,
   },
   objectiveItem: {
@@ -423,7 +426,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 16,
     padding: 12,
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
   },
   checkbox: {
@@ -431,39 +434,39 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffff',
+    borderColor: colors.border,
+    backgroundColor: colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     marginTop: 2,
   },
   checkboxCompleted: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   checkmark: {
     fontSize: 16,
-    color: '#ffffff',
+    color: colors.textInverted,
     fontWeight: 'bold',
   },
   objectiveText: {
     flex: 1,
     fontSize: 16,
-    color: '#1f2937',
+    color: colors.text,
     lineHeight: 24,
   },
   objectiveTextCompleted: {
-    color: '#9ca3af',
+    color: colors.textMuted,
     textDecorationLine: 'line-through',
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: colors.border,
   },
   navButton: {
     flex: 1,
@@ -473,24 +476,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   prevButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.backgroundTertiary,
   },
   nextButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: colors.primary,
   },
   navButtonDisabled: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: colors.border,
     opacity: 0.5,
   },
   navButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6b7280',
+    color: colors.textSecondary,
   },
   navButtonTextNext: {
-    color: '#ffffff',
+    color: colors.headerText,
   },
   navButtonTextDisabled: {
-    color: '#9ca3af',
+    color: colors.textMuted,
   },
 });

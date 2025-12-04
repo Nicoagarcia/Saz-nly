@@ -22,6 +22,7 @@ import {
   getFeaturedRecipes,
 } from "../services/database";
 import { Recipe, RootStackParamList, Category } from "../types";
+import { useTheme } from "../hooks/useTheme";
 
 type SearchScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export const SearchScreen: React.FC<Props> = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const flatListRef = React.useRef<FlatList>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -41,6 +43,8 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
+
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadRecipes();
@@ -202,7 +206,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
 
       {/* Header fijo con título */}
       <TouchableOpacity style={styles.header} onPress={scrollToTop} activeOpacity={0.7}>
@@ -240,43 +244,43 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: colors.backgroundSecondary,
   },
   header: {
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: colors.border,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#f97316",
+    color: colors.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: "#6b7280",
+    color: colors.textSecondary,
   },
   searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#ffffff",
+    backgroundColor: colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: colors.border,
   },
   searchInput: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: colors.backgroundTertiary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: "#1f2937",
+    color: colors.text,
   },
   filterContainer: {
     flexDirection: "row",
@@ -288,18 +292,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: colors.backgroundTertiary,
   },
   filterButtonActive: {
-    backgroundColor: "#f97316",
+    backgroundColor: colors.primary,
   },
   filterText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#6b7280",
+    color: colors.textSecondary,
   },
   filterTextActive: {
-    color: "#ffffff",
+    color: colors.textInverted,
   },
   recipeCardContainer: {
     paddingHorizontal: 20,
@@ -313,7 +317,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
+    color: colors.textMuted,
     textAlign: "center",
   },
   categoryChipsContainer: {
@@ -327,7 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: colors.backgroundTertiary,
     marginRight: 8,
     borderWidth: 2,
     borderColor: "transparent",
@@ -336,15 +340,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   categoryChipActive: {
-    backgroundColor: "#ffffff",
-    borderColor: "#f97316",
+    backgroundColor: colors.background,
+    borderColor: colors.primary,
   },
   categoryChipText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#6b7280",
+    color: colors.textSecondary,
   },
   categoryChipTextActive: {
-    color: "#f97316",
+    color: colors.primary,
   },
 });

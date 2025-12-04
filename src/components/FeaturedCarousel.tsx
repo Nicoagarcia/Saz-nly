@@ -9,6 +9,7 @@ import {
   Dimensions
 } from 'react-native';
 import { Recipe } from '../types';
+import { useTheme } from '../hooks/useTheme';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = 280;
@@ -23,6 +24,9 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
   recipes,
   onRecipePress
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   // No mostrar nada si no hay recetas destacadas
   if (recipes.length === 0) {
     return null;
@@ -105,7 +109,7 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     marginBottom: 20
   },
@@ -116,12 +120,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text,
     marginBottom: 4
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6b7280'
+    color: colors.textSecondary
   },
   listContent: {
     paddingHorizontal: 20
@@ -132,7 +136,7 @@ const styles = StyleSheet.create({
     marginRight: CARD_MARGIN,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -152,7 +156,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: '#f97316',
+    backgroundColor: colors.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
