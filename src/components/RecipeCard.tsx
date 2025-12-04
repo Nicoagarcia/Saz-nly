@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Recipe, Difficulty } from '../types';
+import { useTheme } from '../hooks/useTheme';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -8,18 +9,21 @@ interface RecipeCardProps {
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress }) => {
+  const { colors: themeColors, isDark } = useTheme();
+
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
       case Difficulty.EASY:
-        return { bg: '#dcfce7', text: '#16a34a' }; // green
+        return { bg: themeColors.successLight, text: themeColors.success };
       case Difficulty.MEDIUM:
-        return { bg: '#fef9c3', text: '#ca8a04' }; // yellow
+        return { bg: themeColors.warningLight, text: themeColors.warning };
       case Difficulty.HARD:
-        return { bg: '#fee2e2', text: '#dc2626' }; // red
+        return { bg: themeColors.dangerLight, text: themeColors.danger };
     }
   };
 
   const colors = getDifficultyColor(recipe.difficulty);
+  const styles = createStyles(themeColors);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
@@ -84,9 +88,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.background,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
@@ -124,12 +128,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text,
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -148,12 +152,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 14,
-    color: '#f97316',
+    color: colors.primary,
     fontWeight: '500',
   },
   servings: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: colors.textMuted,
   },
   categoriesContainer: {
     flexDirection: 'row',
@@ -175,7 +179,7 @@ const styles = StyleSheet.create({
   },
   moreCategoriesText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.textMuted,
     fontWeight: '500',
   },
 });
