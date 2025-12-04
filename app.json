@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "Saz-nly-mobile",
-    "slug": "Saz-nly-mobile",
+    "slug": "chefia-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Sazonly.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -12,15 +12,37 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/Sazonly.png",
+          "color": "#f97316",
+          "sounds": [
+            "./assets/sounds/timer_complete.mp3"
+          ]
+        }
+      ]
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      },
+      "bundleIdentifier": "com.nicoagarcia.chefiamobile"
     },
     "android": {
-      "package": "com.Saz-nly.mobile",
+      "package": "com.nicoagarcia.chefiamobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/Sazonly.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
