@@ -38,7 +38,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "favorites">("all");
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
 
@@ -82,21 +82,28 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
     flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
-  // Filtrado de recetas con useMemo para optimizar
+  const toggleCategory = (categoryId: number) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(categoryId)) {
+        return prev.filter((id) => id !== categoryId);
+      } else {
+        return [...prev, categoryId];
+      }
+    });
+  };
+
   const filteredRecipes = useMemo(() => {
     let results = recipes;
 
-    // Filtrar por categoría
-    if (selectedCategory !== null) {
+    if (selectedCategories.length > 0) {
       results = results.filter((r) =>
-        r.categories.some((c) => c.id === selectedCategory)
+        r.categories.some((c) => selectedCategories.includes(c.id))
       );
     }
 
     return results;
-  }, [recipes, selectedCategory]);
+  }, [recipes, selectedCategories]);
 
-  // Renderizar carrusel, chips y filtros (se desplazan con el scroll)
   const renderHeader = () => (
     <>
       {/* Carrusel de Destacados */}
@@ -118,14 +125,15 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 styles.categoryChip,
-                selectedCategory === null && styles.categoryChipActive,
+                selectedCategories.length === 0 && styles.categoryChipActive,
               ]}
-              onPress={() => setSelectedCategory(null)}
+              onPress={() => setSelectedCategories([])}
             >
               <Text
                 style={[
                   styles.categoryChipText,
-                  selectedCategory === null && styles.categoryChipTextActive,
+                  selectedCategories.length === 0 &&
+                    styles.categoryChipTextActive,
                 ]}
               >
                 Todas
@@ -137,15 +145,18 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
                 key={cat.id}
                 style={[
                   styles.categoryChip,
-                  selectedCategory === cat.id && styles.categoryChipActive,
-                  selectedCategory === cat.id && { borderColor: cat.color },
+                  selectedCategories.includes(cat.id) &&
+                    styles.categoryChipActive,
+                  selectedCategories.includes(cat.id) && {
+                    borderColor: cat.color,
+                  },
                 ]}
-                onPress={() => setSelectedCategory(cat.id)}
+                onPress={() => toggleCategory(cat.id)}
               >
                 <Text
                   style={[
                     styles.categoryChipText,
-                    selectedCategory === cat.id && { color: cat.color },
+                    selectedCategories.includes(cat.id) && { color: cat.color },
                   ]}
                 >
                   {cat.icon} {cat.name}
@@ -170,7 +181,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
             } else {
               setFilter("favorites");
               setSearchQuery("");
-              setSelectedCategory(null);
+              setSelectedCategories([]);
             }
           }}
         >
@@ -193,8 +204,8 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       <Text style={styles.emptyText}>
         {filter === "favorites"
           ? "No tienes recetas favoritas aún"
-          : selectedCategory !== null
-          ? "No hay recetas en esta categoría"
+          : selectedCategories.length > 0
+          ? "No hay recetas en las categorías seleccionadas"
           : "No se encontraron recetas"}
       </Text>
     </View>
@@ -205,7 +216,11 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header fijo con título */}
-      <TouchableOpacity style={styles.header} onPress={scrollToTop} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.header}
+        onPress={scrollToTop}
+        activeOpacity={0.7}
+      >
         <Text style={styles.title}>👨‍🍳 Saz-nly</Text>
         <Text style={styles.subtitle}>Tu asistente de cocina</Text>
       </TouchableOpacity>
