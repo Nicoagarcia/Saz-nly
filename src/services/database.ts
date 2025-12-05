@@ -299,12 +299,15 @@ export const getRecipeById = (id: number): Recipe | null => {
   }
 };
 
-// Buscar recetas por título
 export const searchRecipes = (query: string): Recipe[] => {
   try {
+    const sanitizedQuery = `%${query.toLowerCase()}%`;
+
     const recipes = db.getAllSync<any>(
-      "SELECT * FROM recipes WHERE title LIKE ? OR description LIKE ? ORDER BY title ASC",
-      [`%${query}%`, `%${query}%`]
+      `SELECT * FROM recipes
+       WHERE lower(title) LIKE ?
+       ORDER BY title ASC`,
+      [sanitizedQuery]
     );
 
     return recipes.map((recipe) => ({
