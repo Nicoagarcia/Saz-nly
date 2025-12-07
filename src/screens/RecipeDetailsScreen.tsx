@@ -14,6 +14,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { getRecipeById, toggleFavorite } from '../services/database';
 import { Recipe, RootStackParamList, Difficulty } from '../types';
+import { LoginRequiredModal } from '../components/LoginRequiredModal';
 
 type RecipeDetailsNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -29,6 +30,8 @@ interface Props {
 export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const { recipeId } = route.params;
 
   useEffect(() => {
@@ -41,7 +44,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const handleToggleFavorite = () => {
-    if (recipe) {
+    if (!isUserLoggedIn) {
+      setShowLoginModal(true);
+    } else if (recipe) {
       const newStatus = toggleFavorite(recipe.id);
       setRecipe({ ...recipe, isFavorite: newStatus });
     }
@@ -51,6 +56,20 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     if (recipe) {
       navigation.navigate('Cooking', { recipe });
     }
+  };
+
+  const handleLogin = () => {
+    setShowLoginModal(false);
+    console.log('Login button pressed - implement authentication');
+  };
+
+  const handleRegister = () => {
+    setShowLoginModal(false);
+    console.log('Register button pressed - implement authentication');
+  };
+
+  const handleCloseModal = () => {
+    setShowLoginModal(false);
   };
 
   const getDifficultyColor = (difficulty: Difficulty) => {
@@ -179,6 +198,13 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.cookButtonText}>Empezar a Cocinar</Text>
         </TouchableOpacity>
       </View>
+
+      <LoginRequiredModal
+        visible={showLoginModal}
+        onClose={handleCloseModal}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
     </SafeAreaView>
   );
 };
