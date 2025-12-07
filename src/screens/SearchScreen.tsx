@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RecipeCard } from "../components/RecipeCard";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
+import { LoginRequiredModal } from "../components/LoginRequiredModal";
 import {
   getAllRecipes,
   searchRecipes,
@@ -41,6 +42,8 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     loadRecipes();
@@ -90,6 +93,34 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
         return [...prev, categoryId];
       }
     });
+  };
+
+  const handleFavoritesPress = () => {
+    if (!isUserLoggedIn) {
+      setShowLoginModal(true);
+    } else {
+      if (filter === "favorites") {
+        setFilter("all");
+      } else {
+        setFilter("favorites");
+        setSearchQuery("");
+        setSelectedCategories([]);
+      }
+    }
+  };
+
+  const handleLogin = () => {
+    setShowLoginModal(false);
+    console.log('Login button pressed - implement authentication');
+  };
+
+  const handleRegister = () => {
+    setShowLoginModal(false);
+    console.log('Register button pressed - implement authentication');
+  };
+
+  const handleCloseModal = () => {
+    setShowLoginModal(false);
   };
 
   const filteredRecipes = useMemo(() => {
@@ -166,35 +197,6 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
           </ScrollView>
         </View>
       )}
-
-      {/* Botón de Favoritas */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filter === "favorites" && styles.filterButtonActive,
-          ]}
-          onPress={() => {
-            // Toggle entre todas y favoritas
-            if (filter === "favorites") {
-              setFilter("all");
-            } else {
-              setFilter("favorites");
-              setSearchQuery("");
-              setSelectedCategories([]);
-            }
-          }}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              filter === "favorites" && styles.filterTextActive,
-            ]}
-          >
-            ⭐ Favoritas
-          </Text>
-        </TouchableOpacity>
-      </View>
     </>
   );
 
@@ -216,14 +218,29 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header fijo con título */}
-      <TouchableOpacity
-        style={styles.header}
-        onPress={scrollToTop}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.title}>👨‍🍳 Saz-nly</Text>
-        <Text style={styles.subtitle}>Tu asistente de cocina</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerTitleContainer}
+          onPress={scrollToTop}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.title}>👨‍🍳 Saz-nly</Text>
+          <Text style={styles.subtitle}>Tu asistente de cocina</Text>
+        </TouchableOpacity>
+
+        {isUserLoggedIn && (
+          <TouchableOpacity
+            style={[
+              styles.headerFavoriteButton,
+              filter === "favorites" && styles.headerFavoriteButtonActive,
+            ]}
+            onPress={handleFavoritesPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.headerFavoriteIcon}>⭐</Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
       {/* Buscador fijo */}
       <View style={styles.searchContainer}>
@@ -251,6 +268,13 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
       />
+
+      <LoginRequiredModal
+        visible={showLoginModal}
+        onClose={handleCloseModal}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
     </SafeAreaView>
   );
 };
@@ -267,6 +291,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+    position: 'relative',
   },
   title: {
     fontSize: 32,
@@ -277,6 +302,31 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: "#6b7280",
+  },
+  headerTitleContainer: {
+    // Container para título y subtítulo
+  },
+  headerFavoriteButton: {
+    position: 'absolute',
+    right: 20,
+    top: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerFavoriteButtonActive: {
+    backgroundColor: '#f97316',
+  },
+  headerFavoriteIcon: {
+    fontSize: 20,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -292,29 +342,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: "#1f2937",
-  },
-  filterContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    justifyContent: "center",
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#f3f4f6",
-  },
-  filterButtonActive: {
-    backgroundColor: "#f97316",
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#6b7280",
-  },
-  filterTextActive: {
-    color: "#ffffff",
   },
   recipeCardContainer: {
     paddingHorizontal: 20,
