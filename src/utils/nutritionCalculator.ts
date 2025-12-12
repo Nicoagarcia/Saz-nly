@@ -2,17 +2,24 @@ import { Recipe, ParsedAmount, RecipeNutrition, NutritionData } from "../types";
 import {
   getAllNutritionData,
   getUnitConversion,
-  addNutritionData,
 } from "../services/nutritionDatabase";
-import { searchInLocalUSDA } from "./usdaLocalJson";
 
 let nutritionCache: NutritionData[] | null = null;
 
 const loadNutritionCache = (): NutritionData[] => {
   if (!nutritionCache) {
     nutritionCache = getAllNutritionData();
+    console.log(
+      `Caché de nutrición cargada: ${nutritionCache.length} ingredientes`
+    );
   }
   return nutritionCache;
+};
+
+export const reloadNutritionCache = () => {
+  nutritionCache = null;
+  const newCache = loadNutritionCache();
+  console.log(`Caché de nutrición recargada: ${newCache.length} ingredientes`);
 };
 
 export const parseIngredientAmount = (amountString: string): ParsedAmount => {
@@ -82,19 +89,75 @@ export const convertToGrams = (
   let ingredientCategory = category;
   if (!ingredientCategory) {
     const nameLower = ingredientName.toLowerCase();
+
+    // Harinas y panes
     if (/(harina|pan\s*rallado)/i.test(nameLower)) {
       ingredientCategory = "flour";
-    } else if (/(azúcar|miel)/i.test(nameLower)) {
+    }
+    // Azúcares
+    else if (/(azúcar|azucar|miel)/i.test(nameLower)) {
       ingredientCategory = "sugar";
-    } else if (/(arroz|quinoa)/i.test(nameLower)) {
+    }
+    // Granos
+    else if (/(arroz|quinoa)/i.test(nameLower)) {
       ingredientCategory = "grain";
-    } else if (/(aceite|manteca|grasa)/i.test(nameLower)) {
+    }
+    // Grasas
+    else if (/(aceite|manteca|mantequilla|grasa)/i.test(nameLower)) {
       ingredientCategory = "fat";
-    } else if (/(huevo)/i.test(nameLower)) {
+    }
+    // Huevos
+    else if (/(huevo)/i.test(nameLower)) {
       ingredientCategory = "egg";
-    } else if (/(ajo)/i.test(nameLower)) {
+    }
+    // Palta/Aguacate
+    else if (/(palta|aguacate|avocado)/i.test(nameLower)) {
+      ingredientCategory = "avocado";
+    }
+    // Limón/Lima
+    else if (/(limón|limon|lemon)/i.test(nameLower)) {
+      ingredientCategory = "lemon";
+    } else if (/(lima|lime)/i.test(nameLower)) {
+      ingredientCategory = "lime";
+    }
+    // Cebollas
+    else if (/(cebolla|onion)/i.test(nameLower)) {
+      ingredientCategory = "onion";
+    }
+    // Tomates
+    else if (/(tomate|tomato)/i.test(nameLower)) {
+      ingredientCategory = "tomato";
+    }
+    // Papas
+    else if (/(papa|patata|potato)/i.test(nameLower)) {
+      ingredientCategory = "potato";
+    }
+    // Manzanas
+    else if (/(manzana|apple)/i.test(nameLower)) {
+      ingredientCategory = "apple";
+    }
+    // Bananas
+    else if (/(banana|plátano|platano|banano)/i.test(nameLower)) {
+      ingredientCategory = "banana";
+    }
+    // Naranjas
+    else if (/(naranja|orange)/i.test(nameLower)) {
+      ingredientCategory = "orange";
+    }
+    // Zanahorias
+    else if (/(zanahoria|carrot)/i.test(nameLower)) {
+      ingredientCategory = "carrot";
+    }
+    // Morrones/Pimientos
+    else if (/(morrón|morron|pimiento|bell\s*pepper|pepper)/i.test(nameLower)) {
+      ingredientCategory = "bell_pepper";
+    }
+    // Ajo
+    else if (/(ajo|garlic)/i.test(nameLower)) {
       ingredientCategory = "garlic";
-    } else {
+    }
+    // Default: líquido
+    else {
       ingredientCategory = "liquid";
     }
   }
@@ -112,6 +175,17 @@ export const convertToGrams = (
     fat: { cucharada: 14, cucharadita: 5 },
     egg: { unidad: 50 },
     garlic: { diente: 3 },
+    avocado: { unidad: 150 },
+    lemon: { unidad: 58 },
+    lime: { unidad: 67 },
+    onion: { unidad: 150 },
+    tomato: { unidad: 123 },
+    potato: { unidad: 173 },
+    apple: { unidad: 182 },
+    banana: { unidad: 118 },
+    orange: { unidad: 131 },
+    carrot: { unidad: 61 },
+    bell_pepper: { unidad: 119 },
   };
 
   if (
@@ -126,8 +200,20 @@ export const convertToGrams = (
   if (normalized === "cucharadita") return quantity * 5;
   if (normalized === "ml") return quantity * 1;
   if (normalized === "l") return quantity * 1000;
-  if (normalized === "unidad" && /huevo/i.test(ingredientName))
-    return quantity * 50;
+
+  // Fallbacks finales por ingrediente específico
+  if (normalized === "unidad") {
+    const nameLower = ingredientName.toLowerCase();
+    if (/huevo/i.test(nameLower)) return quantity * 50;
+    if (/(palta|aguacate)/i.test(nameLower)) return quantity * 150;
+    if (/(limón|limon)/i.test(nameLower)) return quantity * 58;
+    if (/cebolla/i.test(nameLower)) return quantity * 150;
+    if (/tomate/i.test(nameLower)) return quantity * 123;
+    if (/(papa|patata)/i.test(nameLower)) return quantity * 173;
+    if (/manzana/i.test(nameLower)) return quantity * 182;
+    if (/(banana|plátano)/i.test(nameLower)) return quantity * 118;
+    if (/(morrón|morron|pimiento)/i.test(nameLower)) return quantity * 119;
+  }
 
   console.warn(
     `No se pudo convertir ${quantity} ${unit} de "${ingredientName}" a gramos`
@@ -149,33 +235,66 @@ export const findBestNutritionMatch = async (
 
   const normalized = normalize(ingredientName);
 
-  let match = nutritionDatabase.find(
+  // 1. Búsqueda exacta en español (prioridad)
+  let match = nutritionDatabase.find((item) => {
+    const spanishName = item.spanish_name ? normalize(item.spanish_name) : null;
+    return spanishName === normalized;
+  });
+  if (match) return match;
+
+  // 2. Búsqueda exacta en inglés
+  match = nutritionDatabase.find(
     (item) => normalize(item.ingredient_name) === normalized
   );
   if (match) return match;
 
-  match = nutritionDatabase.find((item) =>
-    normalized.includes(normalize(item.ingredient_name))
-  );
+  // 3. Búsqueda parcial en español (ingrediente contiene búsqueda)
+  match = nutritionDatabase.find((item) => {
+    const spanishName = item.spanish_name ? normalize(item.spanish_name) : null;
+    return spanishName && spanishName.includes(normalized);
+  });
   if (match) return match;
 
+  // 4. Búsqueda parcial en inglés
   match = nutritionDatabase.find((item) =>
     normalize(item.ingredient_name).includes(normalized)
   );
   if (match) return match;
 
+  // 5. Búsqueda inversa en español (búsqueda contiene ingrediente)
+  match = nutritionDatabase.find((item) => {
+    const spanishName = item.spanish_name ? normalize(item.spanish_name) : null;
+    return spanishName && normalized.includes(spanishName);
+  });
+  if (match) return match;
+
+  // 6. Búsqueda inversa en inglés
+  match = nutritionDatabase.find((item) =>
+    normalized.includes(normalize(item.ingredient_name))
+  );
+  if (match) return match;
+
+  // 7. Búsqueda por palabras en español
   const words = normalized.split(/\s+/);
+  match = nutritionDatabase.find((item) => {
+    const spanishName = item.spanish_name ? normalize(item.spanish_name) : null;
+    if (!spanishName) return false;
+    const itemWords = spanishName.split(/\s+/);
+    return words.some((w) => itemWords.includes(w) && w.length > 2);
+  });
+  if (match) return match;
+
+  // 8. Búsqueda por palabras en inglés
   match = nutritionDatabase.find((item) => {
     const itemWords = normalize(item.ingredient_name).split(/\s+/);
     return words.some((w) => itemWords.includes(w) && w.length > 2);
   });
   if (match) return match;
 
+  // 9. Alias comunes (último recurso)
   const aliases: { [key: string]: string } = {
     "carne molida": "carne picada",
     res: "carne de res",
-    parmesano: "queso parmesano",
-    "queso rallado": "queso parmesano",
     cherry: "tomate",
     "tomates cherry": "tomate",
     cebollas: "cebolla",
@@ -186,32 +305,11 @@ export const findBestNutritionMatch = async (
   if (aliases[normalized]) {
     match = nutritionDatabase.find(
       (item) =>
-        normalize(item.ingredient_name) === normalize(aliases[normalized])
+        normalize(item.ingredient_name) === normalize(aliases[normalized]) ||
+        (item.spanish_name &&
+          normalize(item.spanish_name) === normalize(aliases[normalized]))
     );
     if (match) return match;
-  }
-
-  console.log(
-    `📂 Ingrediente "${ingredientName}" no encontrado en BD, buscando en JSON local...`
-  );
-
-  try {
-    const localData = searchInLocalUSDA(ingredientName);
-
-    if (localData) {
-      console.log(`Encontrado en JSON local`);
-
-      const saved = addNutritionData(localData);
-
-      if (saved) {
-        nutritionCache?.push(localData);
-        console.log(`Ingrediente "${ingredientName}" guardado en BD local`);
-      }
-
-      return localData;
-    }
-  } catch (error) {
-    console.error(`Error al buscar "${ingredientName}" en JSON local:`, error);
   }
 
   console.warn(

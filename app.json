@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "Saz-nly-mobile",
+    "name": "Saz-nly",
     "slug": "chefia-mobile",
     "version": "1.0.0",
+    "scheme": "chefiamobile",
     "orientation": "portrait",
     "icon": "./assets/Sazonly.png",
     "userInterfaceStyle": "light",
@@ -29,6 +30,13 @@
       "infoPlist": {
         "UIBackgroundModes": [
           "audio"
+        ],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "chefiamobile"
+            ]
+          }
         ]
       },
       "bundleIdentifier": "com.nicoagarcia.chefiamobile"
@@ -41,7 +49,9 @@
       },
       "permissions": [
         "VIBRATE",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
       ],
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false

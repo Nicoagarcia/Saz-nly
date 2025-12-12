@@ -12,8 +12,14 @@ import {
   initializeCategories,
 } from "./src/services/database";
 import { seedDatabase } from "./src/services/seed";
-import { seedNutritionData, seedUnitConversions } from "./src/services/nutritionDatabase";
-import { loadUSDALocalData } from "./src/utils/usdaLocalJson";
+import {
+  seedNutritionData,
+  seedUnitConversions,
+  seedUSDAIngredients,
+  updateUnitConversions,
+} from "./src/services/nutritionDatabase";
+import { reloadNutritionCache } from "./src/utils/nutritionCalculator";
+import { migrateAddSpanishName } from "./src/services/migrationScript";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -37,14 +43,22 @@ export default function App() {
       initializeCategories();
       console.log("Categorías inicializadas");
 
+      // Ejecutar migración para agregar columna spanish_name (si es necesario)
+      migrateAddSpanishName();
+
       // Inicializar datos nutricionales
       seedNutritionData();
       seedUnitConversions();
+      updateUnitConversions(); // Agregar conversiones faltantes
       console.log("Datos nutricionales inicializados");
 
-      // Precargar JSON de USDA en memoria (340 alimentos)
-      loadUSDALocalData();
-      console.log("JSON de USDA cargado en memoria");
+      // Cargar 340 ingredientes USDA en la BD
+      seedUSDAIngredients();
+      console.log("Ingredientes USDA cargados en BD");
+
+      // Recargar caché de nutrición para incluir los datos USDA
+      reloadNutritionCache();
+      console.log("Caché de nutrición actualizada");
 
       // TEMPORAL: Forzar seed para recrear todas las recetas
       // Comentar estas 2 líneas después de la primera ejecución

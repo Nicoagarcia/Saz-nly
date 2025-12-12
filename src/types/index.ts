@@ -52,6 +52,7 @@ export interface Recipe {
 export interface NutritionData {
   id?: number;
   ingredient_name: string;
+  spanish_name?: string;
   serving_size_g: number;
   calories: number;
   protein_g: number;
