@@ -12,6 +12,7 @@ export const initNutritionTables = () => {
       CREATE TABLE IF NOT EXISTS nutrition_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ingredient_name TEXT NOT NULL UNIQUE,
+        spanish_name TEXT,
         serving_size_g REAL NOT NULL DEFAULT 100,
         calories REAL NOT NULL,
         protein_g REAL NOT NULL,
@@ -44,6 +45,9 @@ export const initNutritionTables = () => {
     try {
       db.execSync(
         "CREATE INDEX IF NOT EXISTS idx_nutrition_ingredient ON nutrition_data(ingredient_name)"
+      );
+      db.execSync(
+        "CREATE INDEX IF NOT EXISTS idx_nutrition_spanish ON nutrition_data(spanish_name)"
       );
       db.execSync(
         "CREATE INDEX IF NOT EXISTS idx_unit_conversion_unit ON unit_conversions(unit_name)"
@@ -782,8 +786,23 @@ export const seedUnitConversions = () => {
       // Volumen - Granos (arroz, quinoa)
       { unit_name: "taza", ingredient_category: "grain", grams_per_unit: 185 },
 
-      // Unidades especiales
+      // Unidades - Proteínas
       { unit_name: "unidad", ingredient_category: "egg", grams_per_unit: 50 },
+
+      // Unidades - Vegetales y Frutas
+      { unit_name: "unidad", ingredient_category: "avocado", grams_per_unit: 150 },
+      { unit_name: "unidad", ingredient_category: "lemon", grams_per_unit: 58 },
+      { unit_name: "unidad", ingredient_category: "lime", grams_per_unit: 67 },
+      { unit_name: "unidad", ingredient_category: "onion", grams_per_unit: 150 },
+      { unit_name: "unidad", ingredient_category: "tomato", grams_per_unit: 123 },
+      { unit_name: "unidad", ingredient_category: "potato", grams_per_unit: 173 },
+      { unit_name: "unidad", ingredient_category: "apple", grams_per_unit: 182 },
+      { unit_name: "unidad", ingredient_category: "banana", grams_per_unit: 118 },
+      { unit_name: "unidad", ingredient_category: "orange", grams_per_unit: 131 },
+      { unit_name: "unidad", ingredient_category: "carrot", grams_per_unit: 61 },
+      { unit_name: "unidad", ingredient_category: "bell_pepper", grams_per_unit: 119 },
+
+      // Unidades - Otros
       { unit_name: "diente", ingredient_category: "garlic", grams_per_unit: 3 },
 
       // Cucharadas genéricas (aceite, manteca)
@@ -823,15 +842,28 @@ export const getNutritionForIngredient = (
   try {
     const normalized = ingredientName.toLowerCase().trim();
 
-    // Buscar coincidencia exacta
+    // 1. Buscar coincidencia exacta en español
     let result = db.getFirstSync<NutritionData>(
+      "SELECT * FROM nutrition_data WHERE LOWER(spanish_name) = ?",
+      [normalized]
+    );
+    if (result) return result;
+
+    // 2. Buscar coincidencia exacta en inglés
+    result = db.getFirstSync<NutritionData>(
       "SELECT * FROM nutrition_data WHERE LOWER(ingredient_name) = ?",
       [normalized]
     );
-
     if (result) return result;
 
-    // Buscar coincidencia parcial
+    // 3. Buscar coincidencia parcial en español
+    result = db.getFirstSync<NutritionData>(
+      "SELECT * FROM nutrition_data WHERE LOWER(spanish_name) LIKE ? LIMIT 1",
+      [`%${normalized}%`]
+    );
+    if (result) return result;
+
+    // 4. Buscar coincidencia parcial en inglés
     result = db.getFirstSync<NutritionData>(
       "SELECT * FROM nutrition_data WHERE LOWER(ingredient_name) LIKE ? LIMIT 1",
       [`%${normalized}%`]
@@ -886,7 +918,10 @@ export const getAllNutritionData = (): NutritionData[] => {
 };
 
 // Agregar un nuevo ingrediente a la base de datos
-export const addNutritionData = (data: Omit<NutritionData, "id">): boolean => {
+export const addNutritionData = (
+  data: Omit<NutritionData, "id">,
+  spanishName?: string
+): boolean => {
   try {
     // Verificar si ya existe
     const existing = db.getFirstSync<NutritionData>(
@@ -904,11 +939,12 @@ export const addNutritionData = (data: Omit<NutritionData, "id">): boolean => {
     // Insertar nuevo ingrediente
     db.runSync(
       `INSERT INTO nutrition_data (
-        ingredient_name, serving_size_g, calories, protein_g, carbs_g, fat_g,
+        ingredient_name, spanish_name, serving_size_g, calories, protein_g, carbs_g, fat_g,
         fiber_g, sugar_g, sodium_mg, vitamin_a_dv, vitamin_c_dv, calcium_dv, iron_dv, category
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         data.ingredient_name,
+        spanishName || null,
         data.serving_size_g,
         data.calories,
         data.protein_g,
@@ -935,5 +971,149 @@ export const addNutritionData = (data: Omit<NutritionData, "id">): boolean => {
       error
     );
     return false;
+  }
+};
+
+// Actualizar conversiones de unidades (agregar las faltantes sin borrar)
+export const updateUnitConversions = () => {
+  try {
+    console.log("Actualizando conversiones de unidades...");
+
+    const newConversions: Omit<UnitConversion, "id">[] = [
+      // Unidades - Vegetales y Frutas
+      { unit_name: "unidad", ingredient_category: "avocado", grams_per_unit: 150 },
+      { unit_name: "unidad", ingredient_category: "lemon", grams_per_unit: 58 },
+      { unit_name: "unidad", ingredient_category: "lime", grams_per_unit: 67 },
+      { unit_name: "unidad", ingredient_category: "onion", grams_per_unit: 150 },
+      { unit_name: "unidad", ingredient_category: "tomato", grams_per_unit: 123 },
+      { unit_name: "unidad", ingredient_category: "potato", grams_per_unit: 173 },
+      { unit_name: "unidad", ingredient_category: "apple", grams_per_unit: 182 },
+      { unit_name: "unidad", ingredient_category: "banana", grams_per_unit: 118 },
+      { unit_name: "unidad", ingredient_category: "orange", grams_per_unit: 131 },
+      { unit_name: "unidad", ingredient_category: "carrot", grams_per_unit: 61 },
+      { unit_name: "unidad", ingredient_category: "bell_pepper", grams_per_unit: 119 },
+    ];
+
+    let insertedCount = 0;
+    const stmt = db.prepareSync(`
+      INSERT OR IGNORE INTO unit_conversions (unit_name, ingredient_category, grams_per_unit)
+      VALUES (?, ?, ?)
+    `);
+
+    for (const conv of newConversions) {
+      try {
+        stmt.executeSync([
+          conv.unit_name,
+          conv.ingredient_category || null,
+          conv.grams_per_unit,
+        ]);
+        insertedCount++;
+      } catch (error) {
+        // Ignorar duplicados
+      }
+    }
+
+    console.log(
+      `✅ ${insertedCount} conversiones de unidades actualizadas`
+    );
+  } catch (error) {
+    console.error("Error al actualizar conversiones de unidades:", error);
+  }
+};
+
+// Cargar 340 ingredientes USDA desde JSON
+export const seedUSDAIngredients = () => {
+  try {
+    // Verificar si ya fueron cargados
+    const count = db.getFirstSync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM nutrition_data WHERE category = 'usda_foundation'"
+    );
+
+    // Si hay datos pero son menos de 300, hubo un error previo, recargar
+    if (count && count.count >= 300) {
+      console.log(`Ingredientes USDA ya cargados: ${count.count} ingredientes`);
+      return;
+    }
+
+    if (count && count.count > 0 && count.count < 300) {
+      console.log(`⚠️ Solo hay ${count.count} ingredientes USDA, recargando todos...`);
+      // Limpiar ingredientes USDA incompletos
+      db.execSync("DELETE FROM nutrition_data WHERE category = 'usda_foundation'");
+    }
+
+    console.log("Cargando 340 ingredientes USDA desde JSON...");
+
+    // Cargar datos USDA
+    const usdaData = require("../data/usdaIngredients.json") as Omit<
+      NutritionData,
+      "id"
+    >[];
+
+    console.log(`📥 JSON cargado: ${usdaData.length} ingredientes`);
+
+    // Cargar traducciones
+    const translations = require("../data/ingredientTranslations.json") as {
+      [spanish: string]: string;
+    };
+
+    // Crear mapa inverso: inglés -> español
+    const reverseTranslations: { [english: string]: string } = {};
+    for (const [spanish, english] of Object.entries(translations)) {
+      reverseTranslations[english] = spanish;
+    }
+    console.log(`🌍 Traducciones cargadas: ${Object.keys(translations).length} español→inglés, ${Object.keys(reverseTranslations).length} inglés→español`);
+
+    let insertedCount = 0;
+    const stmt = db.prepareSync(`
+      INSERT INTO nutrition_data (
+        ingredient_name, spanish_name, serving_size_g, calories, protein_g, carbs_g, fat_g,
+        fiber_g, sugar_g, sodium_mg, vitamin_a_dv, vitamin_c_dv, calcium_dv, iron_dv, category
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const item of usdaData) {
+      try {
+        // Buscar traducción al español
+        const spanishName = reverseTranslations[item.ingredient_name] || null;
+
+        stmt.executeSync([
+          item.ingredient_name,
+          spanishName,
+          item.serving_size_g,
+          item.calories,
+          item.protein_g,
+          item.carbs_g,
+          item.fat_g,
+          item.fiber_g,
+          item.sugar_g,
+          item.sodium_mg,
+          item.vitamin_a_dv,
+          item.vitamin_c_dv,
+          item.calcium_dv,
+          item.iron_dv,
+          item.category || "usda_foundation",
+        ]);
+        insertedCount++;
+      } catch (error) {
+        console.error(
+          `Error al insertar "${item.ingredient_name}":`,
+          error
+        );
+      }
+    }
+
+    console.log(
+      `✅ ${insertedCount}/${usdaData.length} ingredientes USDA cargados correctamente`
+    );
+
+    // Verificar el conteo final
+    const finalCount = db.getFirstSync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM nutrition_data WHERE category = 'usda_foundation'"
+    );
+    console.log(`📊 Total en BD después de insertar: ${finalCount?.count || 0} ingredientes USDA`);
+
+  } catch (error) {
+    console.error("❌ Error al cargar ingredientes USDA:", error);
+    throw error;
   }
 };
