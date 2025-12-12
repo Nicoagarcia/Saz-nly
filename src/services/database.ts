@@ -6,6 +6,7 @@ import {
   Difficulty,
   Category,
 } from "../types";
+import { initNutritionTables } from "./nutritionDatabase";
 
 const DATABASE_NAME = "Saz-nly.db";
 
@@ -93,6 +94,9 @@ export const initDatabase = () => {
         console.warn("Advertencia al agregar columna isFeatured:", error);
       }
     }
+
+    // Inicializar tablas de nutrición
+    initNutritionTables();
 
     console.log("Base de datos inicializada correctamente");
   } catch (error) {

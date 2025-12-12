@@ -12,6 +12,8 @@ import {
   initializeCategories,
 } from "./src/services/database";
 import { seedDatabase } from "./src/services/seed";
+import { seedNutritionData, seedUnitConversions } from "./src/services/nutritionDatabase";
+import { loadUSDALocalData } from "./src/utils/usdaLocalJson";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -34,6 +36,15 @@ export default function App() {
       // Inicializar categorías
       initializeCategories();
       console.log("Categorías inicializadas");
+
+      // Inicializar datos nutricionales
+      seedNutritionData();
+      seedUnitConversions();
+      console.log("Datos nutricionales inicializados");
+
+      // Precargar JSON de USDA en memoria (340 alimentos)
+      loadUSDALocalData();
+      console.log("JSON de USDA cargado en memoria");
 
       // TEMPORAL: Forzar seed para recrear todas las recetas
       // Comentar estas 2 líneas después de la primera ejecución
