@@ -45,6 +45,7 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
   const [selectedServings, setSelectedServings] = useState<number>(1);
   const [showServingsModal, setShowServingsModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'ingredients' | 'steps'>('ingredients');
   const { recipeId } = route.params;
 
   useEffect(() => {
@@ -248,47 +249,90 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Ingredientes</Text>
-            {recipe.ingredients.map((ing, index) => (
-              <View key={index} style={styles.ingredientItem}>
-                <Text style={styles.ingredientBullet}>•</Text>
-                <View style={styles.ingredientContent}>
-                  <Text style={styles.ingredientText}>
-                    <Text style={styles.ingredientAmount}>
-                      {adjustIngredientAmount(ing.amount)}
-                    </Text>{" "}
-                    {ing.item}
-                  </Text>
-                  {ing.notes && (
-                    <Text style={styles.ingredientNotes}>{ing.notes}</Text>
-                  )}
-                </View>
-              </View>
-            ))}
+          {/* Tabs Navigation */}
+          <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'ingredients' && styles.tabActive
+              ]}
+              onPress={() => setActiveTab('ingredients')}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.tabText,
+                activeTab === 'ingredients' && styles.tabTextActive
+              ]}>
+                Ingredientes
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'steps' && styles.tabActive
+              ]}
+              onPress={() => setActiveTab('steps')}
+              activeOpacity={0.7}
+            >
+              <Text style={[
+                styles.tabText,
+                activeTab === 'steps' && styles.tabTextActive
+              ]}>
+                Pasos
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pasos</Text>
-            {recipe.steps.map((step, index) => (
-              <View key={index} style={styles.stepContainer}>
-                <View style={styles.stepHeader}>
-                  <View style={styles.stepNumber}>
-                    <Text style={styles.stepNumberText}>{step.stepNumber}</Text>
-                  </View>
-                  <Text style={styles.stepTitle}>{step.title}</Text>
-                </View>
-                <Text style={styles.stepDescription}>{step.description}</Text>
-                {step.timerSeconds && (
-                  <View style={styles.timerBadge}>
-                    <Text style={styles.timerText}>
-                      ⏱️ {Math.floor(step.timerSeconds / 60)} min
+          {/* Tab Content */}
+          {activeTab === 'ingredients' && (
+            <View style={styles.tabContent}>
+              {recipe.ingredients.map((ing, index) => (
+                <View key={index} style={styles.ingredientItem}>
+                  <Text style={styles.ingredientBullet}>•</Text>
+                  <View style={styles.ingredientContent}>
+                    <Text style={styles.ingredientText}>
+                      <Text style={styles.ingredientAmount}>
+                        {adjustIngredientAmount(ing.amount)}
+                      </Text>{" "}
+                      {ing.item}
                     </Text>
+                    {ing.notes && (
+                      <Text style={styles.ingredientNotes}>{ing.notes}</Text>
+                    )}
                   </View>
-                )}
-              </View>
-            ))}
-          </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {activeTab === 'steps' && (
+            <View style={styles.tabContent}>
+              {recipe.steps.map((step, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.stepContainer,
+                    index === recipe.steps.length - 1 && styles.stepContainerLast
+                  ]}
+                >
+                  <View style={styles.stepHeader}>
+                    <View style={styles.stepNumber}>
+                      <Text style={styles.stepNumberText}>{step.stepNumber}</Text>
+                    </View>
+                    <Text style={styles.stepTitle}>{step.title}</Text>
+                  </View>
+                  <Text style={styles.stepDescription}>{step.description}</Text>
+                  {step.timerSeconds && (
+                    <View style={styles.timerBadge}>
+                      <Text style={styles.timerText}>
+                        ⏱️ {Math.floor(step.timerSeconds / 60)} min
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -480,6 +524,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6b7280",
   },
+  tabsContainer: {
+    flexDirection: "row",
+    borderBottomWidth: 2,
+    borderBottomColor: "#e5e7eb",
+    marginTop: 24,
+    marginBottom: 20,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderBottomWidth: 3,
+    borderBottomColor: "transparent",
+  },
+  tabActive: {
+    borderBottomColor: "#f97316",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#9ca3af",
+  },
+  tabTextActive: {
+    color: "#f97316",
+  },
+  tabContent: {
+    paddingBottom: 20,
+  },
   section: {
     marginBottom: 32,
   },
@@ -522,6 +594,11 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+  },
+  stepContainerLast: {
+    borderBottomWidth: 0,
+    marginBottom: 0,
+    paddingBottom: 0,
   },
   stepHeader: {
     flexDirection: "row",
