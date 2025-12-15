@@ -1,83 +1,95 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Recipe, Difficulty } from '../types';
+import { COLORS } from '../constants/colors';
 
 interface RecipeCardProps {
   recipe: Recipe;
   onPress: () => void;
+  compact?: boolean;
+  cardWidth?: number;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress }) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact = false, cardWidth }) => {
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
       case Difficulty.EASY:
-        return { bg: '#dcfce7', text: '#16a34a' }; // green
+        return COLORS.difficultyEasy;
       case Difficulty.MEDIUM:
-        return { bg: '#fef9c3', text: '#ca8a04' }; // yellow
+        return COLORS.difficultyMedium;
       case Difficulty.HARD:
-        return { bg: '#fee2e2', text: '#dc2626' }; // red
+        return COLORS.difficultyHard;
     }
   };
 
   const colors = getDifficultyColor(recipe.difficulty);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      <Image
-        source={{ uri: recipe.imageUrl || 'https://via.placeholder.com/400x300' }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-            <Text style={[styles.badgeText, { color: colors.text }]}>
-              {recipe.difficulty}
-            </Text>
-          </View>
-          {recipe.isFavorite && (
-            <Text style={styles.favorite}>⭐</Text>
-          )}
-        </View>
-
-        <Text style={styles.title} numberOfLines={2}>
-          {recipe.title}
-        </Text>
-
-        <Text style={styles.description} numberOfLines={2}>
-          {recipe.description}
-        </Text>
-
-        {/* Categorías */}
+    <TouchableOpacity
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        cardWidth && { width: cardWidth }
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: recipe.imageUrl || 'https://via.placeholder.com/400x300' }}
+          style={[styles.image, compact && styles.imageCompact]}
+          resizeMode="cover"
+        />
+        {/* Categorías superpuestas en la imagen */}
         {recipe.categories && recipe.categories.length > 0 && (
-          <View style={styles.categoriesContainer}>
-            {recipe.categories.slice(0, 2).map((category) => (
+          <View style={styles.categoriesOverlay}>
+            {recipe.categories.slice(0, compact ? 1 : 2).map((category) => (
               <View
                 key={category.id}
-                style={[
-                  styles.categoryBadge,
-                  { backgroundColor: category.color + '20' }
-                ]}
+                style={styles.categoryBadge}
               >
-                <Text style={[styles.categoryText, { color: category.color }]}>
-                  {category.icon} {category.name}
+                <Text style={styles.categoryText}>
+                  {category.name}
                 </Text>
               </View>
             ))}
-            {recipe.categories.length > 2 && (
-              <Text style={styles.moreCategoriesText}>
-                +{recipe.categories.length - 2}
-              </Text>
-            )}
           </View>
         )}
-
-        <View style={styles.footer}>
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeIcon}>⏱️</Text>
-            <Text style={styles.timeText}>{recipe.prepTimeMinutes} min</Text>
+        {recipe.isFavorite && (
+          <View style={styles.favoriteOverlay}>
+            <Text style={styles.favorite}>⭐</Text>
           </View>
-          <Text style={styles.servings}>{recipe.servings} porciones</Text>
+        )}
+      </View>
+
+      <View style={[styles.content, compact && styles.contentCompact]}>
+        <Text
+          style={[styles.title, compact && styles.titleCompact]}
+          numberOfLines={compact ? 1 : 2}
+        >
+          {recipe.title}
+        </Text>
+
+        {!compact && (
+          <Text style={styles.description} numberOfLines={2}>
+            {recipe.description}
+          </Text>
+        )}
+
+        {/* Footer con badges */}
+        <View style={styles.footer}>
+          <View style={styles.footerBadge}>
+            <Text style={styles.footerBadgeIcon}>⏱️</Text>
+            <Text style={styles.footerBadgeText}>{recipe.prepTimeMinutes} min</Text>
+          </View>
+          <View style={styles.footerBadge}>
+            <Text style={styles.footerBadgeIcon}>📊</Text>
+            <Text style={styles.footerBadgeText}>{recipe.difficulty}</Text>
+          </View>
+          <View style={styles.footerBadge}>
+            <Text style={styles.footerBadgeIcon}>👥</Text>
+            <Text style={styles.footerBadgeText}>{recipe.servings} {recipe.servings === 1 ? 'porción' : 'porciones'}</Text>
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -86,96 +98,98 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
     overflow: 'hidden',
+  },
+  cardCompact: {
+    marginBottom: 0,
+  },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
   },
   image: {
     width: '100%',
     height: 200,
   },
-  content: {
-    padding: 16,
+  imageCompact: {
+    height: 140,
   },
-  header: {
+  categoriesOverlay: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    gap: 6,
   },
-  badge: {
-    paddingHorizontal: 12,
+  categoryBadge: {
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 16,
+    borderRadius: 12,
   },
-  badgeText: {
+  categoryText: {
     fontSize: 12,
     fontWeight: '600',
+    color: COLORS.text,
+  },
+  favoriteOverlay: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
   },
   favorite: {
     fontSize: 20,
   },
+  content: {
+    padding: 16,
+  },
+  contentCompact: {
+    padding: 12,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.text,
     marginBottom: 8,
+  },
+  titleCompact: {
+    fontSize: 16,
+    marginBottom: 4,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: COLORS.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
   footer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timeIcon: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  timeText: {
-    fontSize: 14,
-    color: '#f97316',
-    fontWeight: '500',
-  },
-  servings: {
-    fontSize: 14,
-    color: '#9ca3af',
-  },
-  categoriesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 12,
-    alignItems: 'center',
+    flexWrap: 'wrap',
   },
-  categoryBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+  footerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.peachLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 4,
   },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
+  footerBadgeIcon: {
+    fontSize: 14,
   },
-  moreCategoriesText: {
+  footerBadgeText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: COLORS.teal,
     fontWeight: '500',
   },
 });

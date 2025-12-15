@@ -23,6 +23,7 @@ import {
 } from "../types";
 import { NutritionModal } from "../components/modals/NutritionModal";
 import { calculateRecipeNutrition } from "../utils/nutritionCalculator";
+import { COLORS } from "../constants/colors";
 
 type RecipeDetailsNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -45,7 +46,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
   const [selectedServings, setSelectedServings] = useState<number>(1);
   const [showServingsModal, setShowServingsModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'ingredients' | 'steps'>('ingredients');
+  const [activeTab, setActiveTab] = useState<"ingredients" | "steps">(
+    "ingredients"
+  );
   const { recipeId } = route.params;
 
   useEffect(() => {
@@ -76,10 +79,10 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       const adjustedRecipe = {
         ...recipe,
         servings: selectedServings,
-        ingredients: recipe.ingredients.map(ing => ({
+        ingredients: recipe.ingredients.map((ing) => ({
           ...ing,
-          amount: adjustIngredientAmount(ing.amount)
-        }))
+          amount: adjustIngredientAmount(ing.amount),
+        })),
       };
       navigation.navigate("Cooking", { recipe: adjustedRecipe });
     }
@@ -93,10 +96,10 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
         const adjustedRecipe = {
           ...recipe,
           servings: selectedServings,
-          ingredients: recipe.ingredients.map(ing => ({
+          ingredients: recipe.ingredients.map((ing) => ({
             ...ing,
-            amount: adjustIngredientAmount(ing.amount)
-          }))
+            amount: adjustIngredientAmount(ing.amount),
+          })),
         };
         const nutrition = await calculateRecipeNutrition(adjustedRecipe);
         setNutritionData(nutrition);
@@ -112,11 +115,11 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
       case Difficulty.EASY:
-        return { bg: "#dcfce7", text: "#16a34a" };
+        return COLORS.difficultyEasy;
       case Difficulty.MEDIUM:
-        return { bg: "#fef9c3", text: "#ca8a04" };
+        return COLORS.difficultyMedium;
       case Difficulty.HARD:
-        return { bg: "#fee2e2", text: "#dc2626" };
+        return COLORS.difficultyHard;
     }
   };
 
@@ -136,7 +139,7 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
     // Buscar número y unidad
     const match = normalized.match(/(\d+(?:[.,]\d+)?)\s*(.*)/);
     if (match) {
-      const quantity = parseFloat(match[1].replace(',', '.'));
+      const quantity = parseFloat(match[1].replace(",", "."));
       const unit = match[2].trim();
       const newQuantity = quantity * multiplier;
 
@@ -151,9 +154,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
       }
 
       // Eliminar ceros innecesarios
-      displayQuantity = displayQuantity.replace(/\.0+$/, '');
+      displayQuantity = displayQuantity.replace(/\.0+$/, "");
 
-      return `${displayQuantity}${unit ? ' ' + unit : ''}`;
+      return `${displayQuantity}${unit ? " " + unit : ""}`;
     }
 
     return originalAmount;
@@ -179,12 +182,31 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1f2937" />
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.headerIcon}>←</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={handleToggleFavorite}
+        >
+          <Text style={styles.headerIcon}>
+            {recipe.isFavorite ? "⭐" : "☆"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 + insets.bottom }}
       >
+        {/* Image */}
         <View style={styles.imageContainer}>
           <Image
             source={{
@@ -193,48 +215,54 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             style={styles.image}
             resizeMode="cover"
           />
-          <View style={styles.imageOverlay} />
-          <TouchableOpacity
-            style={styles.backButtonFloat}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={handleToggleFavorite}
-          >
-            <Text style={styles.favoriteIcon}>
-              {recipe.isFavorite ? "⭐" : "☆"}
-            </Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.content}>
+          {/* Title */}
           <Text style={styles.title}>{recipe.title}</Text>
+
+          {/* Categories */}
+          {recipe.categories && recipe.categories.length > 0 && (
+            <View style={styles.categoriesRow}>
+              {recipe.categories.slice(0, 2).map((category) => (
+                <View key={category.id} style={styles.categoryBadge}>
+                  <Text style={styles.categoryText}>{category.name}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Description */}
           <Text style={styles.description}>{recipe.description}</Text>
 
-          <View style={styles.metaContainer}>
-            <View style={[styles.badge, { backgroundColor: colors.bg }]}>
-              <Text style={[styles.badgeText, { color: colors.text }]}>
-                {recipe.difficulty}
-              </Text>
+          {/* Metadata Row */}
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Text style={styles.metaIcon}>⏱️</Text>
+              <Text style={styles.metaText}>{recipe.prepTimeMinutes} min</Text>
             </View>
-            <View style={styles.meta}>
-              <Text style={styles.metaText}>
-                ⏱️ {recipe.prepTimeMinutes} min
-              </Text>
+
+            <Text style={styles.metaDivider}>|</Text>
+
+            <View style={styles.metaItem}>
+              <Text style={styles.metaIcon}>📊</Text>
+              <Text style={styles.metaText}>{recipe.difficulty}</Text>
             </View>
+
+            <Text style={styles.metaDivider}>|</Text>
+
             <TouchableOpacity
-              style={styles.servingsSelector}
+              style={styles.metaItem}
               onPress={() => setShowServingsModal(true)}
               activeOpacity={0.7}
             >
+              <Text style={styles.metaIcon}>👥</Text>
               <Text style={styles.metaText}>
-                🍽️ {selectedServings} {selectedServings === 1 ? 'porción' : 'porciones'}
+                {selectedServings} {selectedServings === 1 ? 'porción' : 'porciones'}
               </Text>
-              <Text style={styles.editIcon}>✏️</Text>
+              <Text style={styles.dropdownIcon}>▼</Text>
             </TouchableOpacity>
+
             <TouchableOpacity
               style={styles.nutritionButton}
               onPress={handleNutritionPress}
@@ -242,9 +270,9 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               disabled={isCalculatingNutrition}
             >
               {isCalculatingNutrition ? (
-                <ActivityIndicator size="small" color="#f97316" />
+                <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <Text style={styles.nutritionButtonText}>📊</Text>
+                <Text style={styles.nutritionIcon}>📊</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -254,37 +282,38 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             <TouchableOpacity
               style={[
                 styles.tab,
-                activeTab === 'ingredients' && styles.tabActive
+                activeTab === "ingredients" && styles.tabActive,
               ]}
-              onPress={() => setActiveTab('ingredients')}
+              onPress={() => setActiveTab("ingredients")}
               activeOpacity={0.7}
             >
-              <Text style={[
-                styles.tabText,
-                activeTab === 'ingredients' && styles.tabTextActive
-              ]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "ingredients" && styles.tabTextActive,
+                ]}
+              >
                 Ingredientes
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'steps' && styles.tabActive
-              ]}
-              onPress={() => setActiveTab('steps')}
+              style={[styles.tab, activeTab === "steps" && styles.tabActive]}
+              onPress={() => setActiveTab("steps")}
               activeOpacity={0.7}
             >
-              <Text style={[
-                styles.tabText,
-                activeTab === 'steps' && styles.tabTextActive
-              ]}>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === "steps" && styles.tabTextActive,
+                ]}
+              >
                 Pasos
               </Text>
             </TouchableOpacity>
           </View>
 
           {/* Tab Content */}
-          {activeTab === 'ingredients' && (
+          {activeTab === "ingredients" && (
             <View style={styles.tabContent}>
               {recipe.ingredients.map((ing, index) => (
                 <View key={index} style={styles.ingredientItem}>
@@ -305,19 +334,22 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
             </View>
           )}
 
-          {activeTab === 'steps' && (
+          {activeTab === "steps" && (
             <View style={styles.tabContent}>
               {recipe.steps.map((step, index) => (
                 <View
                   key={index}
                   style={[
                     styles.stepContainer,
-                    index === recipe.steps.length - 1 && styles.stepContainerLast
+                    index === recipe.steps.length - 1 &&
+                      styles.stepContainerLast,
                   ]}
                 >
                   <View style={styles.stepHeader}>
                     <View style={styles.stepNumber}>
-                      <Text style={styles.stepNumberText}>{step.stepNumber}</Text>
+                      <Text style={styles.stepNumberText}>
+                        {step.stepNumber}
+                      </Text>
                     </View>
                     <Text style={styles.stepTitle}>{step.title}</Text>
                   </View>
@@ -342,7 +374,7 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={handleStartCooking}
           activeOpacity={0.8}
         >
-          <Text style={styles.cookButtonText}>Empezar a Cocinar</Text>
+          <Text style={styles.cookButtonText}>Empezar a Cocinar 👨‍🍳</Text>
         </TouchableOpacity>
       </View>
 
@@ -367,7 +399,8 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Ajustar porciones</Text>
             <Text style={styles.modalSubtitle}>
-              Receta original: {recipe?.servings} {recipe?.servings === 1 ? 'porción' : 'porciones'}
+              Receta original: {recipe?.servings}{" "}
+              {recipe?.servings === 1 ? "porción" : "porciones"}
             </Text>
 
             <View style={styles.servingsControl}>
@@ -387,7 +420,7 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               <View style={styles.servingsDisplay}>
                 <Text style={styles.servingsNumber}>{selectedServings}</Text>
                 <Text style={styles.servingsLabel}>
-                  {selectedServings === 1 ? 'porción' : 'porciones'}
+                  {selectedServings === 1 ? "porción" : "porciones"}
                 </Text>
               </View>
 
@@ -443,111 +476,132 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.backgroundLight,
+  },
+  headerButton: {
+    padding: 8,
+  },
+  headerIcon: {
+    fontSize: 24,
+    color: COLORS.text,
   },
   imageContainer: {
-    position: "relative",
-    height: 300,
+    width: "100%",
+    height: 240,
   },
   image: {
     width: "100%",
     height: "100%",
   },
-  imageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-  },
-  backButtonFloat: {
-    position: "absolute",
-    top: 20,
-    left: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  backIcon: {
-    fontSize: 24,
-    color: "#1f2937",
-  },
-  favoriteButton: {
-    position: "absolute",
-    top: 20,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  favoriteIcon: {
-    fontSize: 24,
-  },
   content: {
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#1f2937",
+    color: COLORS.text,
     marginBottom: 12,
   },
-  description: {
-    fontSize: 16,
-    color: "#6b7280",
-    lineHeight: 24,
-    marginBottom: 20,
+  categoriesRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
   },
-  metaContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 24,
-  },
-  badge: {
+  categoryBadge: {
+    backgroundColor: COLORS.backgroundLight,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 12,
   },
-  badgeText: {
-    fontSize: 14,
-    fontWeight: "600",
+  categoryText: {
+    fontSize: 13,
+    color: COLORS.teal,
+    fontWeight: '500',
   },
-  meta: {
+  description: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  metaRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 24,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaIcon: {
+    fontSize: 16,
+    marginRight: 4,
   },
   metaText: {
     fontSize: 14,
-    color: "#6b7280",
+    color: COLORS.textSecondary,
+  },
+  metaDivider: {
+    fontSize: 14,
+    color: COLORS.teal,
+    marginHorizontal: 12,
+  },
+  dropdownIcon: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    marginLeft: 4,
+  },
+  nutritionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primaryLight,
+    borderWidth: 2,
+    borderColor: COLORS.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 12,
+  },
+  nutritionIcon: {
+    fontSize: 18,
   },
   tabsContainer: {
     flexDirection: "row",
     borderBottomWidth: 2,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: COLORS.border,
     marginTop: 24,
     marginBottom: 20,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 16,
     alignItems: "center",
-    borderBottomWidth: 3,
+    borderBottomWidth: 4,
     borderBottomColor: "transparent",
+    backgroundColor: "transparent",
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
   tabActive: {
-    borderBottomColor: "#f97316",
+    borderBottomColor: COLORS.primary,
+    backgroundColor: COLORS.primaryLight,
   },
   tabText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#9ca3af",
+    color: COLORS.textTertiary,
   },
   tabTextActive: {
-    color: "#f97316",
+    color: COLORS.primary,
+    fontWeight: "700",
   },
   tabContent: {
     paddingBottom: 20,
@@ -558,16 +612,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1f2937",
+    color: COLORS.text,
     marginBottom: 16,
   },
   ingredientItem: {
     flexDirection: "row",
-    marginBottom: 12,
+    marginBottom: 16,
+    backgroundColor: COLORS.backgroundGray,
+    borderRadius: 8,
+    padding: 12,
   },
   ingredientBullet: {
     fontSize: 18,
-    color: "#f97316",
+    color: COLORS.primary,
     marginRight: 8,
     marginTop: 2,
   },
@@ -576,16 +633,16 @@ const styles = StyleSheet.create({
   },
   ingredientText: {
     fontSize: 16,
-    color: "#1f2937",
+    color: COLORS.text,
     lineHeight: 24,
   },
   ingredientAmount: {
     fontWeight: "600",
-    color: "#f97316",
+    color: COLORS.primary,
   },
   ingredientNotes: {
     fontSize: 14,
-    color: "#9ca3af",
+    color: COLORS.textTertiary,
     fontStyle: "italic",
     marginTop: 2,
   },
@@ -593,7 +650,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: COLORS.border,
   },
   stepContainerLast: {
     borderBottomWidth: 0,
@@ -609,7 +666,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#f97316",
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -617,22 +674,22 @@ const styles = StyleSheet.create({
   stepNumberText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: COLORS.background,
   },
   stepTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1f2937",
+    color: COLORS.text,
     flex: 1,
   },
   stepDescription: {
     fontSize: 16,
-    color: "#6b7280",
+    color: COLORS.textSecondary,
     lineHeight: 24,
   },
   timerBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#fff7ed",
+    backgroundColor: COLORS.peachLight,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -640,25 +697,30 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: 14,
-    color: "#f97316",
+    color: COLORS.teal,
     fontWeight: "600",
   },
   bottomBar: {
     padding: 20,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.background,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: COLORS.border,
   },
   cookButton: {
-    backgroundColor: "#f97316",
-    paddingVertical: 16,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 18,
     borderRadius: 12,
     alignItems: "center",
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
   },
   cookButtonText: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: COLORS.background,
   },
   errorContainer: {
     flex: 1,
@@ -668,11 +730,11 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: "#6b7280",
+    color: COLORS.textSecondary,
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: "#f97316",
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -680,35 +742,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#ffffff",
-  },
-  nutritionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#fff7ed",
-    borderWidth: 2,
-    borderColor: "#f97316",
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 8,
-  },
-  nutritionButtonText: {
-    fontSize: 20,
-  },
-  servingsSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff7ed",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#f97316",
-    gap: 6,
-  },
-  editIcon: {
-    fontSize: 14,
+    color: COLORS.background,
   },
   modalOverlay: {
     flex: 1,
@@ -717,7 +751,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.background,
     borderRadius: 20,
     padding: 24,
     width: "85%",
@@ -731,13 +765,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1f2937",
+    color: COLORS.text,
     textAlign: "center",
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
-    color: "#6b7280",
+    color: COLORS.textSecondary,
     textAlign: "center",
     marginBottom: 24,
   },
@@ -752,17 +786,17 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#f97316",
+    backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
   },
   servingsButtonDisabled: {
-    backgroundColor: "#d1d5db",
+    backgroundColor: COLORS.borderLight,
   },
   servingsButtonText: {
     fontSize: 28,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: COLORS.background,
   },
   servingsDisplay: {
     alignItems: "center",
@@ -771,11 +805,11 @@ const styles = StyleSheet.create({
   servingsNumber: {
     fontSize: 48,
     fontWeight: "bold",
-    color: "#f97316",
+    color: COLORS.primary,
   },
   servingsLabel: {
     fontSize: 14,
-    color: "#6b7280",
+    color: COLORS.textSecondary,
     marginTop: 4,
   },
   quickServings: {
@@ -789,26 +823,26 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 22.5,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: COLORS.backgroundLight,
     borderWidth: 2,
-    borderColor: "#e5e7eb",
+    borderColor: COLORS.border,
     justifyContent: "center",
     alignItems: "center",
   },
   quickServingButtonActive: {
-    backgroundColor: "#fff7ed",
-    borderColor: "#f97316",
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
   },
   quickServingText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#6b7280",
+    color: COLORS.textSecondary,
   },
   quickServingTextActive: {
-    color: "#f97316",
+    color: COLORS.primary,
   },
   modalCloseButton: {
-    backgroundColor: "#f97316",
+    backgroundColor: COLORS.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
@@ -816,6 +850,6 @@ const styles = StyleSheet.create({
   modalCloseButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: COLORS.background,
   },
 });

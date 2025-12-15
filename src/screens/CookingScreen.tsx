@@ -16,6 +16,8 @@ import { Recipe, RootStackParamList, StepObjective } from '../types';
 import { useBackgroundTimer } from '../hooks/useBackgroundTimer';
 import { NotificationService } from '../services/notificationService';
 import { TimerCompleteModal } from '../components/TimerCompleteModal';
+import { StepProgressIndicator } from '../components/StepProgressIndicator';
+import { COLORS } from '../constants/colors';
 
 type CookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cooking'>;
 type CookingScreenRouteProp = RouteProp<RootStackParamList, 'Cooking'>;
@@ -34,7 +36,6 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const currentStep = recipe.steps[currentStepIndex];
   const totalSteps = recipe.steps.length;
-  const progress = ((currentStepIndex + 1) / totalSteps) * 100;
 
   const {
     remainingSeconds: timer,
@@ -125,7 +126,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f97316" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
 
       <View style={styles.header}>
         <TouchableOpacity
@@ -153,9 +154,10 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
         </View>
       </View>
 
-      <View style={styles.progressBar}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
+      <StepProgressIndicator
+        totalSteps={totalSteps}
+        currentStep={currentStepIndex}
+      />
 
       <ScrollView
         style={styles.content}
@@ -163,9 +165,6 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
         contentContainerStyle={{ paddingBottom: 80 + insets.bottom }}
       >
         <View style={styles.stepContainer}>
-          <View style={styles.stepNumberBadge}>
-            <Text style={styles.stepNumberText}>{currentStep.stepNumber}</Text>
-          </View>
           <Text style={styles.stepTitle}>{currentStep.title}</Text>
           <Text style={styles.stepDescription}>{currentStep.description}</Text>
         </View>
@@ -192,10 +191,10 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               <Text style={styles.timerButtonText}>
                 {timer === 0 && !isTimerRunning
-                  ? 'Reiniciar'
+                  ? '↻'
                   : isTimerRunning
-                  ? 'Pausar'
-                  : 'Iniciar'}
+                  ? '⏸'
+                  : '▶'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -286,12 +285,12 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f97316',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
@@ -306,7 +305,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     fontSize: 28,
-    color: '#ffffff',
+    color: COLORS.background,
     fontWeight: 'bold',
   },
   headerContent: {
@@ -315,31 +314,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: COLORS.background,
     marginBottom: 4,
     flexShrink: 1,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#fed7aa',
-  },
-  progressBar: {
-    height: 8,
-    backgroundColor: '#fef3c7',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#f97316',
-    shadowColor: '#f97316',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 3,
+    color: COLORS.peachLight,
   },
   content: {
     flex: 1,
@@ -348,33 +329,19 @@ const styles = StyleSheet.create({
   stepContainer: {
     marginBottom: 24,
   },
-  stepNumberBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#f97316',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  stepNumberText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
   stepTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.text,
     marginBottom: 12,
   },
   stepDescription: {
     fontSize: 16,
-    color: '#6b7280',
+    color: COLORS.textSecondary,
     lineHeight: 24,
   },
   timerContainer: {
-    backgroundColor: '#fff7ed',
+    backgroundColor: COLORS.peachLight,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -382,32 +349,34 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     fontSize: 14,
-    color: '#9a3412',
+    color: COLORS.teal,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   timerDisplay: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#f97316',
+    color: COLORS.teal,
     marginBottom: 16,
+    fontVariant: ['tabular-nums'],
   },
   timerButton: {
-    backgroundColor: '#f97316',
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 24,
+    backgroundColor: COLORS.teal,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   timerButtonStop: {
-    backgroundColor: '#dc2626',
+    backgroundColor: COLORS.teal,
   },
   timerButtonReset: {
-    backgroundColor: '#2563eb',
+    backgroundColor: COLORS.teal,
   },
   timerButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: 24,
+    color: COLORS.background,
   },
   objectivesContainer: {
     marginBottom: 24,
@@ -415,55 +384,55 @@ const styles = StyleSheet.create({
   objectivesTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: COLORS.text,
     marginBottom: 16,
   },
   objectiveItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 18,
     padding: 12,
-    backgroundColor: '#f9fafb',
+    backgroundColor: COLORS.backgroundGray,
     borderRadius: 12,
   },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffff',
+    borderColor: COLORS.borderLight,
+    backgroundColor: COLORS.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     marginTop: 2,
   },
   checkboxCompleted: {
-    backgroundColor: '#10b981',
-    borderColor: '#10b981',
+    backgroundColor: COLORS.success,
+    borderColor: COLORS.success,
   },
   checkmark: {
     fontSize: 16,
-    color: '#ffffff',
+    color: COLORS.background,
     fontWeight: 'bold',
   },
   objectiveText: {
     flex: 1,
     fontSize: 16,
-    color: '#1f2937',
+    color: COLORS.text,
     lineHeight: 24,
   },
   objectiveTextCompleted: {
-    color: '#9ca3af',
+    color: COLORS.textTertiary,
     textDecorationLine: 'line-through',
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
     gap: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: COLORS.background,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: COLORS.border,
   },
   navButton: {
     flex: 1,
@@ -473,24 +442,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   prevButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: COLORS.backgroundLight,
   },
   nextButton: {
-    backgroundColor: '#f97316',
+    backgroundColor: COLORS.primary,
   },
   navButtonDisabled: {
-    backgroundColor: '#e5e7eb',
+    backgroundColor: COLORS.border,
     opacity: 0.5,
   },
   navButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6b7280',
+    color: COLORS.textSecondary,
   },
   navButtonTextNext: {
-    color: '#ffffff',
+    color: COLORS.background,
   },
   navButtonTextDisabled: {
-    color: '#9ca3af',
+    color: COLORS.textTertiary,
   },
 });

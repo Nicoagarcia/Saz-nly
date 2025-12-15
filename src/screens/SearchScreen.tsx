@@ -22,6 +22,7 @@ import {
   getFeaturedRecipes,
 } from "../services/database";
 import { Recipe, RootStackParamList, Category } from "../types";
+import { COLORS } from "../constants/colors";
 
 type SearchScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -195,6 +196,19 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Header de Todas las Recetas */}
+      {filter === "all" && (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Todas las Recetas</Text>
+          <Text style={styles.sectionSubtitle}>
+            {filteredRecipes.length}{" "}
+            {filteredRecipes.length === 1
+              ? "receta disponible"
+              : "recetas disponibles"}
+          </Text>
+        </View>
+      )}
     </>
   );
 
@@ -227,14 +241,27 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
 
       {/* Buscador fijo */}
       <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar recetas..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={styles.searchInputContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar recetas..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <TouchableOpacity
+            style={styles.micButton}
+            onPress={() => {
+              // Placeholder para funcionalidad futura
+              console.log("Búsqueda por voz - Próximamente");
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.micIcon}>🎤</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -258,40 +285,56 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: COLORS.backgroundGray,
   },
   header: {
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.background,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: COLORS.border,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#f97316",
+    color: COLORS.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: "#6b7280",
+    color: COLORS.teal,
   },
   searchContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#ffffff",
+    backgroundColor: COLORS.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: COLORS.border,
+  },
+  searchInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.backgroundLight,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  searchIcon: {
+    fontSize: 20,
+    marginRight: 8,
   },
   searchInput: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    flex: 1,
     fontSize: 16,
-    color: "#1f2937",
+    color: COLORS.text,
+    paddingVertical: 4,
+  },
+  micButton: {
+    padding: 4,
+  },
+  micIcon: {
+    fontSize: 20,
   },
   filterContainer: {
     flexDirection: "row",
@@ -303,21 +346,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: COLORS.backgroundLight,
   },
   filterButtonActive: {
-    backgroundColor: "#f97316",
+    backgroundColor: COLORS.primary,
   },
   filterText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#6b7280",
+    color: COLORS.textSecondary,
   },
   filterTextActive: {
-    color: "#ffffff",
+    color: COLORS.background,
   },
   recipeCardContainer: {
     paddingHorizontal: 20,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: COLORS.teal,
   },
   emptyContainer: {
     flex: 1,
@@ -328,7 +386,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: "#9ca3af",
+    color: COLORS.textTertiary,
     textAlign: "center",
   },
   categoryChipsContainer: {
@@ -342,7 +400,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: COLORS.backgroundLight,
     marginRight: 8,
     borderWidth: 2,
     borderColor: "transparent",
@@ -351,15 +409,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   categoryChipActive: {
-    backgroundColor: "#ffffff",
-    borderColor: "#f97316",
+    backgroundColor: COLORS.background,
+    borderColor: COLORS.primary,
   },
   categoryChipText: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#6b7280",
+    color: COLORS.textSecondary,
   },
   categoryChipTextActive: {
-    color: "#f97316",
+    color: COLORS.primary,
   },
 });
