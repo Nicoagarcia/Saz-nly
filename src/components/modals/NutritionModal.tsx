@@ -62,187 +62,121 @@ export const NutritionModal: React.FC<NutritionModalProps> = ({
       animationType="none"
       onRequestClose={onClose}
     >
-      <Animated.View
-        style={[
-          styles.overlay,
-          {
-            opacity: opacityAnim,
-          },
-        ]}
-      >
+      <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={onClose}>
         <Animated.View
           style={[
-            styles.modalContainer,
+            styles.overlay,
             {
-              transform: [{ scale: scaleAnim }],
+              opacity: opacityAnim,
             },
           ]}
         >
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
           >
-            {/* Header */}
-            <View style={styles.header}>
-              <View style={styles.iconContainer}>
-                <Text style={styles.icon}>🍽️</Text>
-              </View>
-              <Text style={styles.title}>Información Nutricional</Text>
-              <Text style={styles.subtitle}>Por porción</Text>
-            </View>
-
-            {/* Sección: Macronutrientes */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Macronutrientes</Text>
-
-              <View style={styles.nutrientRow}>
-                <View style={styles.nutrientLabel}>
-                  <Text style={styles.nutrientIcon}>🔥</Text>
-                  <Text style={styles.nutrientName}>Calorías</Text>
-                </View>
-                <Text style={styles.nutrientValue}>
-                  {nutrition.calories_per_serving}{" "}
-                  <Text style={styles.unit}>kcal</Text>
-                </Text>
-              </View>
-
-              <View style={styles.nutrientRow}>
-                <View style={styles.nutrientLabel}>
-                  <Text style={styles.nutrientIcon}>🍖</Text>
-                  <Text style={styles.nutrientName}>Proteínas</Text>
-                </View>
-                <Text style={styles.nutrientValue}>
-                  {nutrition.protein_g} <Text style={styles.unit}>g</Text>
-                </Text>
-              </View>
-
-              <View style={styles.nutrientRow}>
-                <View style={styles.nutrientLabel}>
-                  <Text style={styles.nutrientIcon}>🍞</Text>
-                  <Text style={styles.nutrientName}>Carbohidratos</Text>
-                </View>
-                <Text style={styles.nutrientValue}>
-                  {nutrition.carbs_g} <Text style={styles.unit}>g</Text>
-                </Text>
-              </View>
-
-              <View style={styles.nutrientRow}>
-                <View style={styles.nutrientLabel}>
-                  <Text style={styles.nutrientIcon}>🥑</Text>
-                  <Text style={styles.nutrientName}>Grasas</Text>
-                </View>
-                <Text style={styles.nutrientValue}>
-                  {nutrition.fat_g} <Text style={styles.unit}>g</Text>
-                </Text>
-              </View>
-            </View>
-
-            {/* Sección: Información Detallada */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Información Detallada</Text>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Fibra</Text>
-                <Text style={styles.detailValue}>{nutrition.fiber_g}g</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Azúcares</Text>
-                <Text style={styles.detailValue}>{nutrition.sugar_g}g</Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Sodio</Text>
-                <Text style={styles.detailValue}>{nutrition.sodium_mg}mg</Text>
-              </View>
-            </View>
-
-            {/* Sección: Vitaminas y Minerales */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Vitaminas y Minerales</Text>
-              <Text style={styles.sectionSubtitle}>% Valor Diario</Text>
-
-              <View style={styles.vitaminRow}>
-                <Text style={styles.vitaminLabel}>Vitamina A</Text>
-                <View style={styles.vitaminValueContainer}>
-                  <View
-                    style={[
-                      styles.vitaminBar,
-                      { width: `${Math.min(nutrition.vitamin_a_dv, 100)}%` },
-                    ]}
-                  />
-                  <Text style={styles.vitaminValue}>
-                    {nutrition.vitamin_a_dv}%
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.vitaminRow}>
-                <Text style={styles.vitaminLabel}>Vitamina C</Text>
-                <View style={styles.vitaminValueContainer}>
-                  <View
-                    style={[
-                      styles.vitaminBar,
-                      { width: `${Math.min(nutrition.vitamin_c_dv, 100)}%` },
-                    ]}
-                  />
-                  <Text style={styles.vitaminValue}>
-                    {nutrition.vitamin_c_dv}%
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.vitaminRow}>
-                <Text style={styles.vitaminLabel}>Calcio</Text>
-                <View style={styles.vitaminValueContainer}>
-                  <View
-                    style={[
-                      styles.vitaminBar,
-                      { width: `${Math.min(nutrition.calcium_dv, 100)}%` },
-                    ]}
-                  />
-                  <Text style={styles.vitaminValue}>
-                    {nutrition.calcium_dv}%
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.vitaminRow}>
-                <Text style={styles.vitaminLabel}>Hierro</Text>
-                <View style={styles.vitaminValueContainer}>
-                  <View
-                    style={[
-                      styles.vitaminBar,
-                      { width: `${Math.min(nutrition.iron_dv, 100)}%` },
-                    ]}
-                  />
-                  <Text style={styles.vitaminValue}>{nutrition.iron_dv}%</Text>
-                </View>
-              </View>
-            </View>
-
-            {/* Disclaimer */}
-            <View style={styles.disclaimer}>
-              <Text style={styles.disclaimerText}>
-                {hasMissingIngredients
-                  ? `⚠️ Valores aproximados - algunos ingredientes no tienen datos nutricionales completos (${nutrition.missing_ingredients?.join(
-                      ", "
-                    )})`
-                  : "* Valores nutricionales aproximados basados en ingredientes estándar"}
-              </Text>
-            </View>
-
-            {/* Botón Cerrar */}
-            <TouchableOpacity
-              style={styles.button}
-              onPress={onClose}
-              activeOpacity={0.8}
+            <Animated.View
+              style={[
+                styles.modalContainer,
+                {
+                  transform: [{ scale: scaleAnim }],
+                },
+              ]}
             >
-              <Text style={styles.buttonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </ScrollView>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+              >
+                <View style={styles.header}>
+                  <Text style={styles.title}>Información Nutricional</Text>
+                  <Text style={styles.subtitle}>Por porción</Text>
+                </View>
+
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Macronutrientes</Text>
+
+                  <View style={styles.nutrientRow}>
+                    <View style={styles.nutrientLabel}>
+                      <Text style={styles.nutrientIcon}>🔥</Text>
+                      <Text style={styles.nutrientName}>Calorías</Text>
+                    </View>
+                    <Text style={styles.nutrientValue}>
+                      {nutrition.calories_per_serving}{" "}
+                      <Text style={styles.unit}>kcal</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.nutrientRow}>
+                    <View style={styles.nutrientLabel}>
+                      <Text style={styles.nutrientIcon}>🍖</Text>
+                      <Text style={styles.nutrientName}>Proteínas</Text>
+                    </View>
+                    <Text style={styles.nutrientValue}>
+                      {nutrition.protein_g} <Text style={styles.unit}>g</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.nutrientRow}>
+                    <View style={styles.nutrientLabel}>
+                      <Text style={styles.nutrientIcon}>🍞</Text>
+                      <Text style={styles.nutrientName}>Carbohidratos</Text>
+                    </View>
+                    <Text style={styles.nutrientValue}>
+                      {nutrition.carbs_g} <Text style={styles.unit}>g</Text>
+                    </Text>
+                  </View>
+
+                  <View style={styles.nutrientRow}>
+                    <View style={styles.nutrientLabel}>
+                      <Text style={styles.nutrientIcon}>🥑</Text>
+                      <Text style={styles.nutrientName}>Grasas</Text>
+                    </View>
+                    <Text style={styles.nutrientValue}>
+                      {nutrition.fat_g} <Text style={styles.unit}>g</Text>
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Sección: Información Detallada */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Información Detallada</Text>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Fibra</Text>
+                    <Text style={styles.detailValue}>{nutrition.fiber_g}g</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Azúcares</Text>
+                    <Text style={styles.detailValue}>{nutrition.sugar_g}g</Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Sodio</Text>
+                    <Text style={styles.detailValue}>
+                      {nutrition.sodium_mg}mg
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.disclaimer}>
+                  <Text style={styles.disclaimerText}>
+                    {hasMissingIngredients
+                      ? `⚠️ Valores aproximados - algunos ingredientes no tienen datos nutricionales completos (${nutrition.missing_ingredients?.join(
+                          ", "
+                        )})`
+                      : "* Valores nutricionales aproximados basados en ingredientes estándar"}
+                  </Text>
+                </View>
+              </ScrollView>
+            </Animated.View>
+          </TouchableOpacity>
         </Animated.View>
-      </Animated.View>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -265,6 +199,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
+    position: "relative",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#f3f4f6",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+  },
+  closeButtonText: {
+    fontSize: 20,
+    color: "#6b7280",
+    fontWeight: "600",
   },
   scrollContent: {
     padding: 32,
@@ -360,32 +312,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1f2937",
   },
-  vitaminRow: {
-    marginBottom: 16,
-  },
-  vitaminLabel: {
-    fontSize: 14,
-    color: "#6b7280",
-    marginBottom: 6,
-  },
-  vitaminValueContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    position: "relative",
-  },
-  vitaminBar: {
-    height: 8,
-    backgroundColor: "#f97316",
-    borderRadius: 4,
-    position: "absolute",
-    left: 0,
-  },
-  vitaminValue: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#f97316",
-    marginLeft: "auto",
-  },
   disclaimer: {
     backgroundColor: "#fef9c3",
     padding: 12,
@@ -397,16 +323,5 @@ const styles = StyleSheet.create({
     color: "#854d0e",
     textAlign: "center",
     lineHeight: 16,
-  },
-  button: {
-    backgroundColor: "#f97316",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#ffffff",
   },
 });

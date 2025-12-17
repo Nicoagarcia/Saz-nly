@@ -1,22 +1,28 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { COLORS } from "../constants/colors";
 
 interface StepProgressIndicatorProps {
   totalSteps: number;
   currentStep: number; // 0-indexed
+  onStepPress?: (stepIndex: number) => void;
 }
 
 export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
   totalSteps,
   currentStep,
+  onStepPress,
 }) => {
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Auto-scroll to current step when it changes
   useEffect(() => {
     if (totalSteps > 6 && scrollViewRef.current) {
-      // Calculate approximate position to center current step
       const stepWidth = 76; // 36px circle + 40px connector
       const scrollPosition = Math.max(0, currentStep * stepWidth - 100);
 
@@ -38,13 +44,15 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
       return (
         <React.Fragment key={index}>
           {/* Circle */}
-          <View
+          <TouchableOpacity
             style={[
               styles.circle,
               isCompleted && styles.circleCompleted,
               isCurrent && styles.circleCurrent,
               isUpcoming && styles.circleUpcoming,
             ]}
+            onPress={() => onStepPress?.(index)}
+            activeOpacity={0.7}
           >
             <Text
               style={[
@@ -54,7 +62,7 @@ export const StepProgressIndicator: React.FC<StepProgressIndicatorProps> = ({
             >
               {index + 1}
             </Text>
-          </View>
+          </TouchableOpacity>
 
           {/* Connector line */}
           {index < totalSteps - 1 && (
