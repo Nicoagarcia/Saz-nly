@@ -12,8 +12,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { RecipeCard } from "../components/RecipeCard";
 import { FeaturedCarousel } from "../components/FeaturedCarousel";
+import { CategoryFilterModal } from "../components/modals/CategoryFilterModal";
 import {
   getAllRecipes,
   searchRecipes,
@@ -33,6 +35,8 @@ interface Props {
   navigation: SearchScreenNavigationProp;
 }
 
+const MAX_VISIBLE_CATEGORIES = 3;
+
 export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const flatListRef = React.useRef<FlatList>(null);
@@ -42,12 +46,20 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   useEffect(() => {
     loadRecipes();
     loadCategories();
     loadFeaturedRecipes();
   }, [filter]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadRecipes();
+      loadFeaturedRecipes();
+    }, [filter])
+  );
 
   const loadCategories = () => {
     setCategories(getAllCategories());
@@ -141,7 +153,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
               </Text>
             </TouchableOpacity>
 
-            {categories.map((cat) => (
+            {categories.slice(0, MAX_VISIBLE_CATEGORIES).map((cat) => (
               <TouchableOpacity
                 key={cat.id}
                 style={[
@@ -164,38 +176,34 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
                 </Text>
               </TouchableOpacity>
             ))}
+
+            <TouchableOpacity
+              style={[
+                styles.categoryChip,
+                styles.filterChip,
+                selectedCategories.length > 0 && styles.filterChipActive,
+              ]}
+              onPress={() => setShowCategoryModal(true)}
+            >
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  selectedCategories.length > 0 && styles.filterChipTextActive,
+                ]}
+              >
+                + Filtros
+              </Text>
+              {selectedCategories.length > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>
+                    {selectedCategories.length}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </ScrollView>
         </View>
       )}
-
-      {/* Botón de Favoritas */}
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filter === "favorites" && styles.filterButtonActive,
-          ]}
-          onPress={() => {
-            // Toggle entre todas y favoritas
-            if (filter === "favorites") {
-              setFilter("all");
-            } else {
-              setFilter("favorites");
-              setSearchQuery("");
-              setSelectedCategories([]);
-            }
-          }}
-        >
-          <Text
-            style={[
-              styles.filterText,
-              filter === "favorites" && styles.filterTextActive,
-            ]}
-          >
-            ⭐ Favoritas
-          </Text>
-        </TouchableOpacity>
-      </View>
 
       {/* Header de Todas las Recetas */}
       {filter === "all" && (
@@ -229,15 +237,38 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* Header fijo con título */}
-      <TouchableOpacity
-        style={styles.header}
-        onPress={scrollToTop}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.title}>👨‍🍳 Saz-nly</Text>
-        <Text style={styles.subtitle}>Tu asistente de cocina</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerLeft}
+          onPress={scrollToTop}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.title}>Saz-nly</Text>
+          <Text style={styles.subtitle}>Tu recetario de cocina</Text>
+        </TouchableOpacity>
+
+        {/* Botón de Favoritas */}
+        <TouchableOpacity
+          style={[
+            styles.favoritesButton,
+            filter === "favorites" && styles.favoritesButtonActive,
+          ]}
+          onPress={() => {
+            if (filter === "favorites") {
+              setFilter("all");
+            } else {
+              setFilter("favorites");
+              setSearchQuery("");
+              setSelectedCategories([]);
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.favoritesIcon}>
+            {filter === "favorites" ? "⭐" : "☆"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Buscador fijo */}
       <View style={styles.searchContainer}>
@@ -251,16 +282,6 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <TouchableOpacity
-            style={styles.micButton}
-            onPress={() => {
-              // Placeholder para funcionalidad futura
-              console.log("Búsqueda por voz - Próximamente");
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.micIcon}>🎤</Text>
-          </TouchableOpacity>
         </View>
       </View>
 
@@ -278,6 +299,16 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
       />
+
+      <CategoryFilterModal
+        visible={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        categories={categories}
+        selectedCategories={selectedCategories}
+        onApplyFilters={(categoryIds) => {
+          setSelectedCategories(categoryIds);
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -288,12 +319,18 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.backgroundGray,
   },
   header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: COLORS.background,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+  },
+  headerLeft: {
+    flex: 1,
   },
   title: {
     fontSize: 32,
@@ -304,6 +341,21 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: COLORS.teal,
+  },
+  favoritesButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.backgroundLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 12,
+  },
+  favoritesButtonActive: {
+    backgroundColor: COLORS.primaryLight,
+  },
+  favoritesIcon: {
+    fontSize: 24,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -329,35 +381,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.text,
     paddingVertical: 4,
-  },
-  micButton: {
-    padding: 4,
-  },
-  micIcon: {
-    fontSize: 20,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    justifyContent: "center",
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: COLORS.backgroundLight,
-  },
-  filterButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: COLORS.textSecondary,
-  },
-  filterTextActive: {
-    color: COLORS.background,
   },
   recipeCardContainer: {
     paddingHorizontal: 20,
@@ -419,5 +442,33 @@ const styles = StyleSheet.create({
   },
   categoryChipTextActive: {
     color: COLORS.primary,
+  },
+  filterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingRight: 12,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primary,
+  },
+  filterChipTextActive: {
+    color: COLORS.primary,
+    fontWeight: "700",
+  },
+  filterBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 6,
+  },
+  filterBadgeText: {
+    color: COLORS.background,
+    fontSize: 12,
+    fontWeight: "bold",
   },
 });

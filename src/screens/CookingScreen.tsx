@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,19 +8,22 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { Recipe, RootStackParamList, StepObjective } from '../types';
-import { useBackgroundTimer } from '../hooks/useBackgroundTimer';
-import { NotificationService } from '../services/notificationService';
-import { TimerCompleteModal } from '../components/TimerCompleteModal';
-import { StepProgressIndicator } from '../components/StepProgressIndicator';
-import { COLORS } from '../constants/colors';
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RouteProp } from "@react-navigation/native";
+import { Recipe, RootStackParamList, StepObjective } from "../types";
+import { useBackgroundTimer } from "../hooks/useBackgroundTimer";
+import { NotificationService } from "../services/notificationService";
+import { TimerCompleteModal } from "../components/TimerCompleteModal";
+import { StepProgressIndicator } from "../components/StepProgressIndicator";
+import { COLORS } from "../constants/colors";
 
-type CookingScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Cooking'>;
-type CookingScreenRouteProp = RouteProp<RootStackParamList, 'Cooking'>;
+type CookingScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Cooking"
+>;
+type CookingScreenRouteProp = RouteProp<RootStackParamList, "Cooking">;
 
 interface Props {
   navigation: CookingScreenNavigationProp;
@@ -31,11 +34,16 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const { recipe } = route.params;
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [objectives, setObjectives] = useState<StepObjective[]>([]);
+
+  const [allStepsObjectives, setAllStepsObjectives] = useState<
+    Record<number, StepObjective[]>
+  >({});
   const [showTimerModal, setShowTimerModal] = useState(false);
 
   const currentStep = recipe.steps[currentStepIndex];
   const totalSteps = recipe.steps.length;
+
+  const objectives = allStepsObjectives[currentStepIndex] || [];
 
   const {
     remainingSeconds: timer,
@@ -53,20 +61,29 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
     },
   });
 
-  // Inicializar objetivos cuando cambia el paso
   useEffect(() => {
-    const newObjectives: StepObjective[] = currentStep.objectives.map((task, index) => ({
-      id: `${currentStep.stepNumber}-${index}`,
-      task,
-      isCompleted: false,
-    }));
-    setObjectives(newObjectives);
-  }, [currentStepIndex, currentStep.objectives, currentStep.stepNumber]);
+    if (!allStepsObjectives[currentStepIndex]) {
+      const newObjectives: StepObjective[] = currentStep.objectives.map(
+        (task, index) => ({
+          id: `${currentStep.stepNumber}-${index}`,
+          task,
+          isCompleted: false,
+        })
+      );
+      setAllStepsObjectives((prev) => ({
+        ...prev,
+        [currentStepIndex]: newObjectives,
+      }));
+    }
+  }, [
+    currentStepIndex,
+    currentStep.objectives,
+    currentStep.stepNumber,
+    allStepsObjectives,
+  ]);
 
-  // Inicializar servicios de notificación
   useEffect(() => {
     const initNotifications = async () => {
-      // Cancelar todas las notificaciones antiguas al entrar a la pantalla
       await NotificationService.cancelAllNotifications();
       await NotificationService.requestPermissions();
       await NotificationService.setupNotificationChannel();
@@ -81,31 +98,29 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   }, []);
 
   const toggleObjective = (id: string) => {
-    setObjectives((prev) =>
-      prev.map((obj) =>
+    setAllStepsObjectives((prev) => ({
+      ...prev,
+      [currentStepIndex]: prev[currentStepIndex].map((obj) =>
         obj.id === id ? { ...obj, isCompleted: !obj.isCompleted } : obj
-      )
-    );
+      ),
+    }));
   };
-
-  const allObjectivesCompleted = objectives.every((obj) => obj.isCompleted);
 
   const handleNextStep = () => {
     if (currentStepIndex < totalSteps - 1) {
       setCurrentStepIndex((prev) => prev + 1);
     } else {
-      // Último paso completado
       Alert.alert(
-        '🎉 ¡Felicitaciones!',
+        "🎉 ¡Felicitaciones!",
         `Has completado la receta: ${recipe.title}`,
         [
           {
-            text: 'Ver receta',
+            text: "Ver receta",
             onPress: () => navigation.goBack(),
           },
           {
-            text: 'Volver al inicio',
-            onPress: () => navigation.navigate('Search'),
+            text: "Volver al inicio",
+            onPress: () => navigation.navigate("Search"),
           },
         ]
       );
@@ -121,7 +136,9 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
@@ -133,11 +150,11 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           style={styles.closeButton}
           onPress={() => {
             Alert.alert(
-              'Salir de la cocción',
-              '¿Estás seguro que quieres salir? Perderás el progreso actual.',
+              "Salir de la cocción",
+              "¿Estás seguro que quieres salir? Perderás el progreso actual.",
               [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Salir', onPress: () => navigation.goBack() },
+                { text: "Cancelar", style: "cancel" },
+                { text: "Salir", onPress: () => navigation.goBack() },
               ]
             );
           }}
@@ -145,7 +162,11 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text style={styles.closeIcon}>×</Text>
         </TouchableOpacity>
         <View style={styles.headerContent}>
-          <Text style={styles.headerTitle} numberOfLines={2} ellipsizeMode="tail">
+          <Text
+            style={styles.headerTitle}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
             {recipe.title}
           </Text>
           <Text style={styles.headerSubtitle}>
@@ -157,6 +178,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
       <StepProgressIndicator
         totalSteps={totalSteps}
         currentStep={currentStepIndex}
+        onStepPress={(stepIndex) => setCurrentStepIndex(stepIndex)}
       />
 
       <ScrollView
@@ -173,30 +195,49 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           <View style={styles.timerContainer}>
             <Text style={styles.timerLabel}>Temporizador</Text>
             <Text style={styles.timerDisplay}>{formatTime(timer)}</Text>
-            <TouchableOpacity
-              style={[
-                styles.timerButton,
-                isTimerRunning && styles.timerButtonStop,
-                timer === 0 && !isTimerRunning && styles.timerButtonReset,
-              ]}
-              onPress={() => {
-                if (timer === 0 && !isTimerRunning) {
-                  resetTimer();
-                } else if (isTimerRunning) {
-                  pauseTimer();
-                } else {
-                  startTimer();
-                }
-              }}
-            >
-              <Text style={styles.timerButtonText}>
-                {timer === 0 && !isTimerRunning
-                  ? '↻'
-                  : isTimerRunning
-                  ? '⏸'
-                  : '▶'}
-              </Text>
-            </TouchableOpacity>
+
+            {timer === 0 && !isTimerRunning ? (
+              <TouchableOpacity style={styles.timerButton} onPress={resetTimer}>
+                <Text style={styles.timerButtonText}>↻</Text>
+              </TouchableOpacity>
+            ) : isTimerRunning ? (
+              <View style={styles.timerButtonsRow}>
+                <TouchableOpacity
+                  style={[styles.timerButton, styles.timerButtonSmall]}
+                  onPress={pauseTimer}
+                >
+                  <Text style={styles.timerButtonText}>⏸</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.timerButton, styles.timerButtonSmall]}
+                  onPress={resetTimer}
+                >
+                  <Text style={styles.timerButtonText}>↻</Text>
+                </TouchableOpacity>
+              </View>
+            ) : timer < (currentStep.timerSeconds ?? 0) ? (
+              <View style={styles.timerButtonsRow}>
+                <TouchableOpacity
+                  style={[styles.timerButton, styles.timerButtonSmall]}
+                  onPress={startTimer}
+                >
+                  <Text style={styles.timerButtonText}>▶</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.timerButton, styles.timerButtonSmall]}
+                  onPress={resetTimer}
+                >
+                  <Text style={styles.timerButtonText}>↻</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              // Estado inicial (nunca iniciado) - Solo mostrar play
+              <TouchableOpacity style={styles.timerButton} onPress={startTimer}>
+                <Text style={styles.timerButtonText}>▶</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -253,22 +294,11 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.navButton,
-            styles.nextButton,
-            !allObjectivesCompleted && styles.navButtonDisabled,
-          ]}
+          style={[styles.navButton, styles.nextButton]}
           onPress={handleNextStep}
-          disabled={!allObjectivesCompleted}
         >
-          <Text
-            style={[
-              styles.navButtonText,
-              styles.navButtonTextNext,
-              !allObjectivesCompleted && styles.navButtonTextDisabled,
-            ]}
-          >
-            {currentStepIndex === totalSteps - 1 ? 'Finalizar' : 'Siguiente →'}
+          <Text style={[styles.navButtonText, styles.navButtonTextNext]}>
+            {currentStepIndex === totalSteps - 1 ? "Finalizar" : "Siguiente →"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -288,8 +318,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -298,22 +328,22 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   closeIcon: {
     fontSize: 28,
     color: COLORS.background,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   headerContent: {
     flex: 1,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.background,
     marginBottom: 4,
     flexShrink: 1,
@@ -331,7 +361,7 @@ const styles = StyleSheet.create({
   },
   stepTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
     marginBottom: 12,
   },
@@ -341,41 +371,52 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   timerContainer: {
-    backgroundColor: COLORS.peachLight,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 24,
+    backgroundColor: COLORS.backgroundGray,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: "center",
+    marginBottom: 20,
   },
   timerLabel: {
-    fontSize: 14,
-    color: COLORS.teal,
-    fontWeight: '600',
-    marginBottom: 12,
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: "600",
+    marginBottom: 6,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   timerDisplay: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: COLORS.teal,
-    marginBottom: 16,
-    fontVariant: ['tabular-nums'],
+    fontSize: 28,
+    fontWeight: "bold",
+    color: COLORS.text,
+    marginBottom: 10,
+    fontVariant: ["tabular-nums"],
+  },
+  timerButtonsRow: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
   },
   timerButton: {
-    backgroundColor: COLORS.teal,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: COLORS.text,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  timerButtonStop: {
-    backgroundColor: COLORS.teal,
-  },
-  timerButtonReset: {
-    backgroundColor: COLORS.teal,
+  timerButtonSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   timerButtonText: {
-    fontSize: 24,
+    fontSize: 18,
     color: COLORS.background,
   },
   objectivesContainer: {
@@ -383,13 +424,13 @@ const styles = StyleSheet.create({
   },
   objectivesTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
     marginBottom: 16,
   },
   objectiveItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 18,
     padding: 12,
     backgroundColor: COLORS.backgroundGray,
@@ -402,8 +443,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.borderLight,
     backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
     marginTop: 2,
   },
@@ -414,7 +455,7 @@ const styles = StyleSheet.create({
   checkmark: {
     fontSize: 16,
     color: COLORS.background,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   objectiveText: {
     flex: 1,
@@ -424,10 +465,10 @@ const styles = StyleSheet.create({
   },
   objectiveTextCompleted: {
     color: COLORS.textTertiary,
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     gap: 12,
     backgroundColor: COLORS.background,
@@ -438,8 +479,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   prevButton: {
     backgroundColor: COLORS.backgroundLight,
@@ -453,7 +494,7 @@ const styles = StyleSheet.create({
   },
   navButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.textSecondary,
   },
   navButtonTextNext: {
