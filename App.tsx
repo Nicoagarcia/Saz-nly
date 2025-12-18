@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { RootStackParamList } from "./src/types";
-import { SearchScreen } from "./src/screens/SearchScreen";
-import { RecipeDetailsScreen } from "./src/screens/RecipeDetailsScreen";
-import { CookingScreen } from "./src/screens/CookingScreen";
+import { TabNavigator } from "./src/navigation/TabNavigator";
 import {
   initDatabase,
   getAllRecipes,
@@ -20,8 +16,6 @@ import {
 } from "./src/services/nutritionDatabase";
 import { reloadNutritionCache } from "./src/utils/nutritionCalculator";
 import { migrateAddSpanishName } from "./src/services/migrationScript";
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -92,23 +86,7 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Search"
-        screenOptions={{
-          headerShown: false,
-          animation: "slide_from_right",
-        }}
-      >
-        <Stack.Screen name="Search" component={SearchScreen} />
-        <Stack.Screen name="RecipeDetails" component={RecipeDetailsScreen} />
-        <Stack.Screen
-          name="Cooking"
-          component={CookingScreen}
-          options={{
-            gestureEnabled: false, // Prevenir que salgan accidentalmente
-          }}
-        />
-      </Stack.Navigator>
+      <TabNavigator />
     </NavigationContainer>
   );
 }

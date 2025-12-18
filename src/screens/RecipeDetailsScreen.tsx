@@ -24,6 +24,7 @@ import {
 import { NutritionModal } from "../components/modals/NutritionModal";
 import { calculateRecipeNutrition } from "../utils/nutritionCalculator";
 import { COLORS } from "../constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 type RecipeDetailsNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -57,7 +58,7 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     if (recipe) {
-      setSelectedServings(recipe.servings);
+      setSelectedServings(2);
     }
   }, [recipe]);
 
@@ -196,9 +197,11 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           style={styles.headerButton}
           onPress={handleToggleFavorite}
         >
-          <Text style={styles.headerIcon}>
-            {recipe.isFavorite ? "⭐" : "☆"}
-          </Text>
+          <Ionicons
+            name={recipe.isFavorite ? "bookmark" : "bookmark-outline"}
+            size={28}
+            color={COLORS.primary}
+          />
         </TouchableOpacity>
       </View>
 
@@ -238,30 +241,18 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
           {/* Metadata Row */}
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>⏱️</Text>
+              <Text style={styles.metaIcon}></Text>
               <Text style={styles.metaText}>{recipe.prepTimeMinutes} min</Text>
             </View>
 
             <Text style={styles.metaDivider}>|</Text>
 
             <View style={styles.metaItem}>
-              <Text style={styles.metaIcon}>📊</Text>
+              <Text style={styles.metaIcon}></Text>
               <Text style={styles.metaText}>{recipe.difficulty}</Text>
             </View>
 
             <Text style={styles.metaDivider}>|</Text>
-
-            <TouchableOpacity
-              style={styles.metaItem}
-              onPress={() => setShowServingsModal(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.metaIcon}>👥</Text>
-              <Text style={styles.metaText}>
-                {selectedServings} {selectedServings === 1 ? 'porción' : 'porciones'}
-              </Text>
-              <Text style={styles.dropdownIcon}>▼</Text>
-            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.nutritionButton}
@@ -272,8 +263,39 @@ export const RecipeDetailsScreen: React.FC<Props> = ({ navigation, route }) => {
               {isCalculatingNutrition ? (
                 <ActivityIndicator size="small" color={COLORS.primary} />
               ) : (
-                <Text style={styles.nutritionIcon}>📊</Text>
+                <>
+                  <Text style={styles.nutritionIcon}></Text>
+                  <Text style={styles.nutritionText}>Valor Nutricional</Text>
+                </>
               )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Servings Control */}
+          <View style={styles.servingsControlContainer}>
+            <TouchableOpacity
+              style={styles.servingsControlButton}
+              onPress={() =>
+                setSelectedServings(Math.max(1, selectedServings - 1))
+              }
+              activeOpacity={0.7}
+            >
+              <Text style={styles.servingsControlButtonText}>−</Text>
+            </TouchableOpacity>
+
+            <View style={styles.servingsDisplayInline}>
+              <Text style={styles.servingsDisplayText}>
+                {selectedServings}{" "}
+                {selectedServings === 1 ? "porción" : "porciones"}
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.servingsControlButton}
+              onPress={() => setSelectedServings(selectedServings + 1)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.servingsControlButtonText}>+</Text>
             </TouchableOpacity>
           </View>
 
@@ -479,9 +501,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: COLORS.backgroundLight,
@@ -511,12 +533,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   categoriesRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 12,
   },
   categoryBadge: {
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.primaryLight,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -524,7 +546,7 @@ const styles = StyleSheet.create({
   categoryText: {
     fontSize: 13,
     color: COLORS.teal,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   description: {
     fontSize: 15,
@@ -535,11 +557,12 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   metaIcon: {
     fontSize: 16,
@@ -560,18 +583,55 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   nutritionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primaryLight,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 6,
+  },
+
+  nutritionIcon: {
+    fontSize: 16,
+  },
+
+  nutritionText: {
+    fontSize: 14,
+    color: COLORS.text,
+  },
+  servingsControlContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+    marginBottom: 4,
+    gap: 16,
+  },
+  servingsControlButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: COLORS.backgroundLight,
     justifyContent: "center",
     alignItems: "center",
-    marginLeft: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  nutritionIcon: {
+  servingsControlButtonText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: COLORS.text,
+  },
+  servingsDisplayInline: {
+    minWidth: 100,
+    alignItems: "center",
+  },
+  servingsDisplayText: {
     fontSize: 18,
+    fontWeight: "600",
+    color: COLORS.text,
   },
   tabsContainer: {
     flexDirection: "row",
@@ -591,7 +651,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
   tabActive: {
-    borderBottomColor: COLORS.primary,
     backgroundColor: COLORS.primaryLight,
   },
   tabText: {
@@ -600,7 +659,7 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: COLORS.primaryDark,
     fontWeight: "700",
   },
   tabContent: {
@@ -617,10 +676,10 @@ const styles = StyleSheet.create({
   },
   ingredientItem: {
     flexDirection: "row",
-    marginBottom: 16,
-    backgroundColor: COLORS.backgroundGray,
-    borderRadius: 8,
-    padding: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   ingredientBullet: {
     fontSize: 18,
@@ -638,7 +697,7 @@ const styles = StyleSheet.create({
   },
   ingredientAmount: {
     fontWeight: "600",
-    color: COLORS.primary,
+    color: COLORS.primaryDark,
   },
   ingredientNotes: {
     fontSize: 14,
@@ -666,7 +725,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.primaryDark,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
