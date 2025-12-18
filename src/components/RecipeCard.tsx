@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { Recipe, Difficulty } from '../types';
-import { COLORS } from '../constants/colors';
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { Recipe, Difficulty } from "../types";
+import { COLORS } from "../constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -10,7 +11,12 @@ interface RecipeCardProps {
   cardWidth?: number;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact = false, cardWidth }) => {
+export const RecipeCard: React.FC<RecipeCardProps> = ({
+  recipe,
+  onPress,
+  compact = false,
+  cardWidth,
+}) => {
   const getDifficultyColor = (difficulty: Difficulty) => {
     switch (difficulty) {
       case Difficulty.EASY:
@@ -29,14 +35,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact
       style={[
         styles.card,
         compact && styles.cardCompact,
-        cardWidth && { width: cardWidth }
+        cardWidth && { width: cardWidth },
       ]}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: recipe.imageUrl || 'https://via.placeholder.com/400x300' }}
+          source={{
+            uri: recipe.imageUrl || "https://via.placeholder.com/400x300",
+          }}
           style={[styles.image, compact && styles.imageCompact]}
           resizeMode="cover"
         />
@@ -44,20 +52,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact
         {recipe.categories && recipe.categories.length > 0 && (
           <View style={styles.categoriesOverlay}>
             {recipe.categories.slice(0, compact ? 1 : 2).map((category) => (
-              <View
-                key={category.id}
-                style={styles.categoryBadge}
-              >
-                <Text style={styles.categoryText}>
-                  {category.name}
-                </Text>
+              <View key={category.id} style={styles.categoryBadge}>
+                <Text style={styles.categoryText}>{category.name}</Text>
               </View>
             ))}
           </View>
         )}
         {recipe.isFavorite && (
           <View style={styles.favoriteOverlay}>
-            <Text style={styles.favorite}>⭐</Text>
+            <Ionicons name="bookmark" size={28} color={COLORS.primary} />
           </View>
         )}
       </View>
@@ -80,7 +83,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact
         <View style={styles.footer}>
           <View style={styles.footerBadge}>
             <Text style={styles.footerBadgeIcon}>⏱️</Text>
-            <Text style={styles.footerBadgeText}>{recipe.prepTimeMinutes} min</Text>
+            <Text style={styles.footerBadgeText}>
+              {recipe.prepTimeMinutes} min
+            </Text>
           </View>
           <View style={styles.footerBadge}>
             <Text style={styles.footerBadgeIcon}>📊</Text>
@@ -88,7 +93,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onPress, compact
           </View>
           <View style={styles.footerBadge}>
             <Text style={styles.footerBadgeIcon}>👥</Text>
-            <Text style={styles.footerBadgeText}>{recipe.servings} {recipe.servings === 1 ? 'porción' : 'porciones'}</Text>
+            <Text style={styles.footerBadgeText}>
+              {recipe.servings}{" "}
+              {recipe.servings === 1 ? "porción" : "porciones"}
+            </Text>
           </View>
         </View>
       </View>
@@ -101,32 +109,32 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     borderRadius: 12,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   cardCompact: {
     marginBottom: 0,
   },
   imageContainer: {
-    position: 'relative',
-    width: '100%',
+    position: "relative",
+    width: "100%",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 200,
   },
   imageCompact: {
     height: 140,
   },
   categoriesOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     left: 12,
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
   },
   categoryBadge: {
@@ -137,11 +145,11 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.text,
   },
   favoriteOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
   },
@@ -156,7 +164,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.text,
     marginBottom: 8,
   },
@@ -171,13 +179,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
   },
   footerBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.peachLight,
     paddingHorizontal: 10,
     paddingVertical: 6,
@@ -190,6 +198,6 @@ const styles = StyleSheet.create({
   footerBadgeText: {
     fontSize: 12,
     color: COLORS.teal,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

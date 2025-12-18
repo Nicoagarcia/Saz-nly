@@ -98,8 +98,29 @@ export interface ParsedAmount {
 }
 
 // Navigation Types
-export type RootStackParamList = {
-  Search: undefined;
+
+export type RootTabParamList = {
+  RecetasTab: undefined;
+  CategoriasTab: undefined;
+  GuardadoTab: undefined;
+};
+
+export type RecetasStackParamList = {
+  RecetasHome: undefined;
   RecipeDetails: { recipeId: number };
   Cooking: { recipe: Recipe };
 };
+
+export type CategoriasStackParamList = {
+  CategoriasHome: undefined;
+  RecipeDetails: { recipeId: number };
+  Cooking: { recipe: Recipe };
+};
+
+export type GuardadoStackParamList = {
+  GuardadoHome: undefined;
+  RecipeDetails: { recipeId: number };
+  Cooking: { recipe: Recipe };
+};
+
+export type RootStackParamList = RecetasStackParamList;

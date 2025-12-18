@@ -24,6 +24,32 @@ type CookingScreenNavigationProp = NativeStackNavigationProp<
   "Cooking"
 >;
 type CookingScreenRouteProp = RouteProp<RootStackParamList, "Cooking">;
+function shuffleArray<T>(array: T[]): T[] {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const steps: string[] = [
+  "🧑‍🍳",
+  "🥚",
+  "🥦",
+  "🥕",
+  "🍅",
+  "🍗",
+  "🧄",
+  "🧈",
+  "🔪",
+  "🍳",
+  "🥣",
+  "🥄",
+  "🧂",
+  "🍽️",
+];
+const shuffledSteps = shuffleArray(steps);
 
 interface Props {
   navigation: CookingScreenNavigationProp;
@@ -120,7 +146,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           },
           {
             text: "Volver al inicio",
-            onPress: () => navigation.navigate("Search"),
+            onPress: () => navigation.navigate("RecetasHome"),
           },
         ]
       );
@@ -243,7 +269,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
         <View style={styles.objectivesContainer}>
           <Text style={styles.objectivesTitle}>Objetivos del paso:</Text>
-          {objectives.map((objective) => (
+          {objectives.map((objective, index) => (
             <TouchableOpacity
               key={objective.id}
               style={styles.objectiveItem}
@@ -257,7 +283,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
                 ]}
               >
                 {objective.isCompleted && (
-                  <Text style={styles.checkmark}>✓</Text>
+                  <Text style={styles.checkmark}>{shuffledSteps[index]}</Text>
                 )}
               </View>
               <Text
@@ -275,21 +301,15 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         <TouchableOpacity
-          style={[
-            styles.navButton,
-            styles.prevButton,
-            currentStepIndex === 0 && styles.navButtonDisabled,
-          ]}
-          onPress={handlePreviousStep}
-          disabled={currentStepIndex === 0}
+          style={[styles.navButton, styles.prevButton]}
+          onPress={
+            currentStepIndex === 0
+              ? () => navigation.goBack()
+              : handlePreviousStep
+          }
         >
-          <Text
-            style={[
-              styles.navButtonText,
-              currentStepIndex === 0 && styles.navButtonTextDisabled,
-            ]}
-          >
-            ← Anterior
+          <Text style={[styles.navButtonText]}>
+            {currentStepIndex === 0 ? "Salir" : "Anterior"}
           </Text>
         </TouchableOpacity>
 
@@ -298,7 +318,7 @@ export const CookingScreen: React.FC<Props> = ({ navigation, route }) => {
           onPress={handleNextStep}
         >
           <Text style={[styles.navButtonText, styles.navButtonTextNext]}>
-            {currentStepIndex === totalSteps - 1 ? "Finalizar" : "Siguiente →"}
+            {currentStepIndex === totalSteps - 1 ? "Finalizar" : "Siguiente"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -334,7 +354,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   closeIcon: {
-    fontSize: 28,
+    fontSize: 22,
     color: COLORS.background,
     fontWeight: "bold",
   },
@@ -344,13 +364,13 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: COLORS.background,
+    color: COLORS.text,
     marginBottom: 4,
     flexShrink: 1,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: COLORS.peachLight,
+    fontSize: 15,
+    color: COLORS.text,
   },
   content: {
     flex: 1,
@@ -469,7 +489,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     flexDirection: "row",
-    padding: 16,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 4,
     gap: 12,
     backgroundColor: COLORS.background,
     borderTopWidth: 1,
@@ -481,9 +503,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 12,
   },
   prevButton: {
     backgroundColor: COLORS.backgroundLight,
+
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   nextButton: {
     backgroundColor: COLORS.primary,

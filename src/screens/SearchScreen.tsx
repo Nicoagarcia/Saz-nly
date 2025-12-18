@@ -10,6 +10,7 @@ import {
   StatusBar,
   ScrollView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
@@ -23,12 +24,12 @@ import {
   getAllCategories,
   getFeaturedRecipes,
 } from "../services/database";
-import { Recipe, RootStackParamList, Category } from "../types";
+import { Recipe, RecetasStackParamList, Category } from "../types";
 import { COLORS } from "../constants/colors";
 
 type SearchScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Search"
+  RecetasStackParamList,
+  "RecetasHome"
 >;
 
 interface Props {
@@ -40,9 +41,9 @@ const MAX_VISIBLE_CATEGORIES = 3;
 export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const flatListRef = React.useRef<FlatList>(null);
+  const searchInputRef = React.useRef<TextInput>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "favorites">("all");
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([]);
@@ -52,13 +53,13 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
     loadRecipes();
     loadCategories();
     loadFeaturedRecipes();
-  }, [filter]);
+  }, []);
 
   useFocusEffect(
     React.useCallback(() => {
       loadRecipes();
       loadFeaturedRecipes();
-    }, [filter])
+    }, [])
   );
 
   const loadCategories = () => {
@@ -70,11 +71,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   };
 
   const loadRecipes = () => {
-    if (filter === "favorites") {
-      setRecipes(getFavoriteRecipes());
-    } else {
-      setRecipes(getAllRecipes());
-    }
+    setRecipes(getAllRecipes());
   };
 
   const handleSearch = (query: string) => {
@@ -120,7 +117,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const renderHeader = () => (
     <>
       {/* Carrusel de Destacados */}
-      {filter === "all" && searchQuery === "" && (
+      {searchQuery === "" && (
         <FeaturedCarousel
           recipes={featuredRecipes}
           onRecipePress={handleRecipePress}
@@ -128,8 +125,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
       )}
 
       {/* Chips de Categorías */}
-      {filter === "all" && (
-        <View style={styles.categoryChipsContainer}>
+      <View style={styles.categoryChipsContainer}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -203,12 +199,10 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
             </TouchableOpacity>
           </ScrollView>
         </View>
-      )}
 
       {/* Header de Todas las Recetas */}
-      {filter === "all" && (
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Todas las Recetas</Text>
+      <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Todas las recetas</Text>
           <Text style={styles.sectionSubtitle}>
             {filteredRecipes.length}{" "}
             {filteredRecipes.length === 1
@@ -216,7 +210,6 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
               : "recetas disponibles"}
           </Text>
         </View>
-      )}
     </>
   );
 
@@ -224,9 +217,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        {filter === "favorites"
-          ? "No tienes recetas favoritas aún"
-          : selectedCategories.length > 0
+        {selectedCategories.length > 0
           ? "No hay recetas en las categorías seleccionadas"
           : "No se encontraron recetas"}
       </Text>
@@ -243,45 +234,41 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
           onPress={scrollToTop}
           activeOpacity={0.7}
         >
-          <Text style={styles.title}>Saz-nly</Text>
-          <Text style={styles.subtitle}>Tu recetario de cocina</Text>
-        </TouchableOpacity>
-
-        {/* Botón de Favoritas */}
-        <TouchableOpacity
-          style={[
-            styles.favoritesButton,
-            filter === "favorites" && styles.favoritesButtonActive,
-          ]}
-          onPress={() => {
-            if (filter === "favorites") {
-              setFilter("all");
-            } else {
-              setFilter("favorites");
-              setSearchQuery("");
-              setSelectedCategories([]);
-            }
-          }}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.favoritesIcon}>
-            {filter === "favorites" ? "⭐" : "☆"}
-          </Text>
+          <Text style={styles.title}>Sazonly</Text>
+          <Text style={styles.subtitle}>Tu cuaderno de recetas</Text>
         </TouchableOpacity>
       </View>
 
       {/* Buscador fijo */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
           <TextInput
+            ref={searchInputRef}
             style={styles.searchInput}
             placeholder="Buscar recetas..."
+            placeholderTextColor={COLORS.text}
             value={searchQuery}
             onChangeText={handleSearch}
             autoCapitalize="none"
             autoCorrect={false}
           />
+          <TouchableOpacity
+            onPress={() => {
+              if (searchQuery) {
+                handleSearch("");
+              } else {
+                searchInputRef.current?.focus();
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={searchQuery ? "close-circle" : "search"}
+              size={20}
+              color={COLORS.textSecondary}
+              style={styles.searchIcon}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -316,7 +303,7 @@ export const SearchScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundGray,
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: "row",
@@ -324,9 +311,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: COLORS.background,
     paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
+    paddingTop: 32,
+    paddingBottom: 8,
+    // borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   headerLeft: {
@@ -336,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     color: COLORS.primary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   subtitle: {
     fontSize: 16,
@@ -361,20 +348,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: COLORS.background,
-    borderBottomWidth: 1,
+    // borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
   searchInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.SearchBar,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   searchIcon: {
-    fontSize: 20,
-    marginRight: 8,
+    marginLeft: 8,
   },
   searchInput: {
     flex: 1,
@@ -423,7 +411,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: COLORS.backgroundLight,
+    backgroundColor: COLORS.SearchBar,
     marginRight: 8,
     borderWidth: 2,
     borderColor: "transparent",
@@ -432,7 +420,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   categoryChipActive: {
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.SearchBar,
     borderColor: COLORS.primary,
   },
   categoryChipText: {

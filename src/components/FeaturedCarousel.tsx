@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   Image,
   StyleSheet,
-  Dimensions
-} from 'react-native';
-import { Recipe } from '../types';
+  Dimensions,
+} from "react-native";
+import { Recipe } from "../types";
+import { COLORS } from "../constants/colors";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const CARD_WIDTH = 280;
 const CARD_MARGIN = 12;
 
@@ -21,7 +22,7 @@ interface FeaturedCarouselProps {
 
 export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
   recipes,
-  onRecipePress
+  onRecipePress,
 }) => {
   // No mostrar nada si no hay recetas destacadas
   if (recipes.length === 0) {
@@ -35,7 +36,7 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
       activeOpacity={0.8}
     >
       <Image
-        source={{ uri: item.imageUrl || 'https://picsum.photos/800/600' }}
+        source={{ uri: item.imageUrl || "https://picsum.photos/800/600" }}
         style={styles.image}
         resizeMode="cover"
       />
@@ -61,7 +62,7 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
                   key={cat.id}
                   style={[
                     styles.categoryBadge,
-                    { backgroundColor: cat.color + '30' }
+                    { backgroundColor: cat.color + "30" },
                   ]}
                 >
                   <Text style={[styles.categoryText, { color: cat.color }]}>
@@ -86,8 +87,10 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>✨ Destacados</Text>
-        <Text style={styles.headerSubtitle}>Las mejores recetas para probar</Text>
+        <Text style={styles.headerTitle}>Destacados</Text>
+        <Text style={styles.headerSubtitle}>
+          Las mejores recetas para probar
+        </Text>
       </View>
 
       <FlatList
@@ -107,109 +110,109 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20
+    marginBottom: 20,
   },
   header: {
     paddingHorizontal: 20,
-    marginBottom: 12
+    marginBottom: 12,
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 4
+    fontWeight: "bold",
+    color: COLORS.text,
+    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6b7280'
+    color: COLORS.teal,
   },
   listContent: {
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
   card: {
     width: CARD_WIDTH,
     height: 180,
     marginRight: CARD_MARGIN,
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#ffffff',
+    overflow: "hidden",
+    backgroundColor: "#ffffff",
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 8
+    shadowRadius: 8,
   },
   image: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute'
+    width: "100%",
+    height: "100%",
+    position: "absolute",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)'
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   featuredBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: '#f97316',
+    backgroundColor: "#95A472",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
-    shadowRadius: 2
+    shadowRadius: 2,
   },
   featuredText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: "600",
   },
   content: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16
+    padding: 16,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontWeight: "bold",
+    color: "#ffffff",
     marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3
+    textShadowRadius: 3,
   },
   metadata: {
-    gap: 6
+    gap: 6,
   },
   categoriesRow: {
-    flexDirection: 'row',
-    gap: 6
+    flexDirection: "row",
+    gap: 6,
   },
   categoryBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)'
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: '600'
+    fontWeight: "600",
   },
   infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center'
+    flexDirection: "row",
+    alignItems: "center",
   },
   infoText: {
     fontSize: 13,
-    color: '#ffffff',
-    fontWeight: '500',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    color: "#ffffff",
+    fontWeight: "500",
+    textShadowColor: "rgba(0, 0, 0, 0.5)",
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2
-  }
+    textShadowRadius: 2,
+  },
 });
